@@ -1,0 +1,1299 @@
+---
+title: "Grafiken in R"
+author: "Sven Hohenstein"
+output:
+  html_document:
+    highlight: tango
+    theme: readable
+    toc: yes
+---
+
+Eine der Stärken von R ist das Erstellen von Grafiken. Es ist für den
+Nutzer in vielen Fällen sehr einfach, ansprechende Abbildungen in wenigen
+Schritten zu erstellen. Darüber hinaus gibt es viele Möglichkeiten, die 
+Grafiken zu modifizieren und selbst kleine Details zu verändern. 
+Die Visualisierung von Daten mithilfe von Grafiken ist ein wichtiger 
+Bestandteil der Datenanalyse. Auf der einen Seite können auf diese Weise
+Ergebnisse für Außenstehende leicht veranschaulicht werden, andererseits 
+sind Abbildungen sehr hilfreich um sich einen Überblick über einen 
+Datensatz zu verschaffen bevor die eigentliche Analyse beginnt.
+
+Im folgenden Kapitel können jedoch nicht alle Einzelheiten besprochen 
+werden, weil es den Rahmen dieses Buches sprengen würde. 
+Vielmehr werden wir uns auf anwendungsnahe Beispiele konzentrieren und 
+kennen lernen, wie man typische Grafiken einfach erstellen kann.
+Das Ziel ist es eine Gruppe an Funktionen kennenzulernen, mit denen sich
+ohne viel Aufwand attraktive Grafiken erzeugen lassen, die sich auch
+für eine Veröffentlichung eignen.
+
+Das Kapitel ist in zwei Abschnitte gegliedert. Im ersten werden wir die 
+Standardgrafiken von R kennen lernen, die für viele Zwecke hervorragende
+Ergebnisse liefern. Im zweiten Teil steht das Paket `ggplot2` im
+Mittelpunkt. Damit lassen sich gerade komplexe Grafiken mit vielen Variablen
+leichter erstellen als mit den Standardfunktionen.
+
+Bei der Arbeit mit Grafiken macht sich die Verwendung von RStudio besonders
+bezahlt. Die Abbildungen werden in einem eigenen Bereich dargestellt, ohne
+dass sich ein neues Fenster öffnet. Außerdem lassen sich über die 
+Bedienleiste alle erstellen Grafiken ansehen und einfach abspeichern, ohne 
+R-Befehle verwenden zu müssen.
+
+```{r create_dat, echo=FALSE}
+set.seed(2)
+dat <- within(data.frame(Geschl = rep(c("weiblich", "männlich"), c(22, 10)),
+                         Alter = as.integer(c(rnorm(22, 22, 3), 
+                                              rnorm(10, 24, 2))),
+                         Gruppe = sample(c("Kontroll", "Experiment"), 32, 
+                                         replace = TRUE)),
+              Reaktion <- Alter * rgamma(32, 100, 8) - 
+                (Gruppe == "Kontroll") * rnorm(32, 30, 5) +
+                rbinom(32, 1, 0.1) * rnorm(32, 200, 15))
+```
+
+```{r create Zeitreihe, echo=FALSE}
+Zeitreihe <- data.frame(Jahr = 1990:2014,
+                        Wert = rnorm(25))
+```
+
+Zur Veranschaulichung der verschiedenen Funktionen, die R zur Erstellung von 
+Grafiken bereithält, werden wir folgenden fiktiven Datensatz `dat` 
+verwenden. Dieser Datensatz enthält die Reaktionszeiten verschiedener
+Versuchspersonen, die in einem Experiment gemessen wurden.
+
+```{r dat}
+dat
+```
+
+Die erste Spalte, `Geschl`, ist eine kategoriale Variable, die das 
+Geschlecht der Person angibt (`"weiblich"` oder `"männlich"`). In der 
+zweiten Spalte, `Alter`, findet sich das Alter der Personen in Jahren.
+Dies ist eine numerische Variable. Die dritte Spalte enthält eine
+kategoriale Variable, `Gruppe`, die angibt, ob die Daten in der Kontroll-
+oder Experimentalgruppe gemessen wurden (`"Kontroll"` vs. `"Experiment"`).
+Schließlich enthält die vierte Spalte, `Reaktion` die Reaktionszeit in
+Millisekunden.
+
+Naben diesem Datensatz verwenden wir einen zweiten Datensatz mit 
+Zeitreihendaten. Dabei gibt es jeweils einen Wert für die Jahre 1990
+bis 2014. 
+
+```{r Zeitreihe}
+Zeitreihe
+```
+
+Die Spalte `Jahr` enthält das Jahr. In der Spalte `Wert` steht jeweils ein
+Wert für jedes Jahr. Im Gegensatz zum Reaktionszeitdatensatz `dat` haben
+die Daten in `Zeitreihe` eine feste Reihenfolge.
+
+## Standardgrafiken
+
+Die Basisfunktion zur Erstellung von Grafiken finden sich bei R im Paket 
+`graphics`, welches automatisch beim Start geladen wird. Die Basisfunktionen
+ermöglichen die Erstellung von Abbildungen, die auch nach vielen Aspekten
+den eigenen Wünschen angepasst werden können. Manche Änderungen und Extras
+erfordern jedoch relativ viele Befehle. In diesem Abschnitt werden die
+wichtigsten Standardgrafiken anhand von Beispielen demonstriert und häufig
+genutzte Modifikationen vorgestellt. Detaillierte Informationen zu den 
+Standardgrfaiken in R finden sich in Murrell (2011).
+
+### Säulen- und Balkendiagramme
+
+#### Häufigkeiten
+
+Säulen- und Balkendiagramme eignen sich gut zur Darstellung von
+Häufigkeiten. In R können wir ein Balkendiagramm erstellen, indem wir die 
+Funktion `plot` auf eine kategoriale Variable anwenden. Um 
+die Häufigkeit der Geschlechter in unserem Beispieldatensatz darzustellen
+können wir folgend einfachen Befehl verwenden:
+
+```{r par 1, echo = FALSE, fig.keep='last'}
+layout(t(1:2))
+plot(dat$Geschl)
+plot(dat$Geschl, horiz = TRUE)
+```
+
+```{r plot barplot, eval = FALSE}
+plot(dat$Geschl)
+```
+
+Das Ergebnis ist eine Grafik, die zwei Balken enthält, jeweils einen für
+jede Ausprägung der kategorialen Variable. Die Höhe der Säulen entspricht
+der Anzahl an Beobachtungen in unserem Datensatz. Wir erkennen, dass es
+zehn männliche und zwölf weibliche Versuchspersonen gibt. Erfreulicherweise
+hat R auch die Beschriftung der Balken für uns übernommen.
+
+Im Unterschied zum Säulendiagramm werden beim Balkendiagramm die Werte auf
+der horizontalen Achse ($x$-Achse) abgetragen, während die Kategorien
+auf der vertikalen Achse ($y$-Achse) stehen. Ein Balkendiagramm kann
+einfach mit dem zusätzlichen Argument `horiz = TRUE` erstellt werden.
+
+```{r plot barplot horiz, eval = FALSE}
+plot(dat$Geschl, horiz = TRUE)
+```
+
+In vielen Fällen ist die Wahl zwischen Säulen- und Balkendiagramm eine
+Geschmacksfrage, der Vorteil des Balkendiagramms besteht darin, dass auch
+sehr lange Kategoriennamen gut lesbar sind, da diese untereinander stehen
+und sich keine Zeile teilen müssen.
+
+Wir haben die Funktion `plot` zur Erstellung beider Abbildung genutzt.
+Diese Funktion ist sehr vielfältig und das Ergebnis hängt immer vom Argument
+ab. So erzeugt die Funktion mit einer numerischen Variable einen anderen
+Typ von Grafik. Wir werden die Funktion mit anderen Beispielen kennenlernen.
+
+Deutlich mehr Flexibilität in der Erstellung von Säulen- und Balkengrafiken
+ermöglicht die Funktion `barplot`. Im Gegensatz zu `plot` erwartet diese 
+Funktion allerdings die Angabe der Höhen der Säulen als numerische Werte.
+Ein automatisches Zählen der Häufigkeiten wie mit `plot` gibt es in `barplot`
+nicht. Zum Zählen von Häufigkeiten der Ausprägungen einer kategorialen
+Variable bietet R die Funktion `table`. 
+
+```{r table 1}
+table(dat$Geschl)
+```
+
+Die Funktion `table` zählt die Vorkommen von `"männlich"` und `"weiblich"`
+und liefert eine Häufigkeitstabelle. Die so erzeugte Tabelle können wir 
+für `barplot` verwenden:
+
+```{r par 2, echo = FALSE, fig.keep='last'}
+layout(t(1:3))
+barplot(table(dat$Geschl))
+barplot(table(dat$Gruppe, dat$Geschl))
+barplot(table(dat$Gruppe, dat$Geschl), beside = TRUE)
+```
+
+```{r barplot 1, eval = FALSE}
+barplot(table(dat$Geschl))
+```
+
+Das Ergebnis ist identisch zu der mit `plot` erzeugten Grafik. Warum sollten
+wir uns die Mühe machen und die Häufigkeiten auszählen? Der große Vorteil
+ist, dass wir mit `barplot` die Säulen nach einer weiteren Kategorie 
+gruppieren kann. Wollen wir beispielsweise sehen, wieviele Frauen und 
+Männer es in Experimetal- und Kontrollgruppe gibt, können wir `barplot`
+verwenden. Dazu berechnen wir die Häufigkeiten für die Kombination von zwei
+kategorialen Variablen.
+
+```{r table 2}
+table(dat$Gruppe, dat$Geschl)
+```
+
+Die Funktion `table` erzeugt in diesem Fall eine zweidimensionale
+Häufigkeitstabelle. Diese können wir für `barplot` verwenden.
+
+```{r barplot 2, eval = FALSE}
+barplot(table(dat$Gruppe, dat$Geschl))
+```
+
+In der erzeugten Grafik entsprechen die Balken dem Geschlecht, 
+die verschiedenen Graustufen repräsentieren die Gruppe (`Experiment` 
+oder `"Kontroll"`). Wie wir eine Legende für die Graustufen erzeugen, werden 
+wir gleich noch lernen. Möchten wir die Rollen von Geschlecht und Gruppe 
+umkehren, müssen wir die Reihenfolge der Argumente von `table` vertauschen
+(`table(dat$Geschl, dat$Gruppe)`).
+Bei zwei Variablen, entspricht die zweite den Spalten der Tabelle und damit 
+analog auch den Säulen.
+
+Die erzeugte Abbildung wird gestapeltes Säulendiagramm genannt, weil die
+verschiedenen Säulen übereinander gestapelt sind. Alternativ lassen sich
+die Säulen auch nebeneinander gruppieren. Dazu benötigt man das Argument
+`beside = TRUE`.
+
+```{r barplot 3, eval = FALSE}
+barplot(table(dat$Gruppe, dat$Geschl), beside = TRUE)
+```
+
+In den beiden zuletzt erzeugten Grafiken repräsentieren die zwei
+Graustufen die Werte des Faktors Gruppe (`Experiment` oder `"Kontroll"`).
+Natürlich will man auch wissen, welche Ausprägung von welcher Farbe
+repräsentiert wird. Dazu können wir eine Legende erzeugen. Dies geschieht
+mit dem Argument `legend.text = TRUE`. 
+
+```{r barplot 1_a}
+barplot(table(dat$Gruppe, dat$Geschl), legend.text = TRUE)
+```
+
+Auf diese Weise können wir leicht erkennen, dass es sowohl für Frauen als
+auch für Männer mehr Daten für die Kontrollgruppe gibt. Allerdings können
+wir die Legende noch etwas verbessern, indem wir sie so positionieren, 
+dass sie nicht den Balken bedeckt und ihr einen Titel geben. Zu diesem Zweck
+können wir verschiedene Argumente als Liste dem Parameter `args.legend`
+übergeben. Über die Parameter `x` und `y`
+lassen sich die Koordinaten für die Legende festlegen. Dabei entspricht
+die Position in der unteren linken Ecke den Koordinaten `x = 0` und `y = 0`.
+Es ist jedoch auch möglich dem Parameter `x` statt einer Zahl eine 
+Zeichenkette für die Position zu übergeben. In diesem Fall wählen wir 
+`x = "topleft"` um die Legende oben links zu platzieren. Eine Übersicht über
+alle möglichen Zeichenketten, die für `x` genutzt werden können und die 
+jeweilige Position der Legende gibt die Tabelle.
+
+| Argument         | Position               |
+|------------------|------------------------|
+|`x = bottomleft`  | unten links            |
+|`x = bottom`      | unten zentriert         |
+|`x = bottomright` | unten rechts           |
+|`x = right`       | zentriert rechts       |
+|`x = center`      | im Zentrum der Grafik  |
+|`x = left`        | zentriert links        |
+|`x = topleft`     | oben links             |
+|`x = top`         | oben zentriert         |
+|`x = topright`    | oben rechts            |
+
+
+Außerdem
+wollen wir der Legende auch einen Titel geben. Dies ist mit dem Argument 
+`title = "Gruppe"` möglich in der Argumentliste zu `args.legend` möglich.
+
+```{r barplot 1_b}
+barplot(table(dat$Gruppe, dat$Geschl), legend.text = TRUE,
+        args.legend = list(x = "topleft", title = "Gruppe"))
+```
+
+#### Aggregierte Werte
+
+Die Nutzung von Säulen- und Balkengrafiken ist nicht nur mit kategorialen
+Variablen möglich, sondern auch in Kombination mit numerischen Werten. 
+Häufig wird diese Art der Darstellung auch genutzt, wenn beispielsweise
+die Mittelwerte einer numerischen Variablen hinsichtlich der Ausprägungen
+einer Kategorialen dargestellt werden sollen. Wenn wir wissen möchten,
+wie das mittlere Alter der Frauen und Männer in unserem Datensatz ist,
+können wir die Werte mit der Funktion `tapply` berechnen. 
+
+```{r tapply 1}
+tapply(dat$Alter, dat$Geschl, FUN = mean)
+```
+
+Das erste Argument, `dat$Alter`, 
+ist die Variable, auf die eine Funktion angewendet werden soll. Das zweite
+Argument, `dat$Geschl`, stellt den Index dar. Schließlich ist das dritte
+Argument, `mean`, die Funktion, die auf die Daten (das erste Argument) 
+angewendet werden soll. Die Funktion `tapply` gruppiert in diesem Fall
+die Alterswerte nach Geschlecht und berechnet für beide Gruppen den
+Mittelwert.
+
+Das Ergebnis lässt sich für die `barplot`-Funktion nutzen. Die Höhe
+der Säulen entspricht dabei dem Mittelwert. 
+
+```{r par 3, echo = FALSE, fig.keep='last'}
+layout(t(1:2))
+barplot(tapply(dat$Alter, dat$Geschl, FUN = mean))
+barplot(tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean), beside = TRUE)
+```
+
+```{r barplot tapply 1, eval=FALSE}
+barplot(tapply(dat$Alter, dat$Geschl, FUN = mean))
+```
+
+Auch `tapply` ermöglicht
+die Gruppierung nach mehr als einer kategorialen Variable. Dabei müssen
+für das zweite Argument alle kategorialen Variablen in einer Liste
+(`list`) sein.
+
+```{r tapply 2}
+tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean)
+```
+
+```{r barplot tapply 2, eval=FALSE}
+barplot(tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean), beside = TRUE)
+```
+
+### Histogramme
+
+Will man die Verteilung einer numerischen Variable zu veranschaulichen, ist
+das Histogramm in sehr vielen Fällen das Mittel der Wahl. So kann man
+beispielsweise erkennen, ob die Verteilung symmetrisch oder schief ist.
+Ein Histogramm für die Reaktionszeiten in unserem Beispieldatensatz
+können wir uns mit der `hist`-Funktion erzeugen.
+
+```{r histograms, echo = FALSE, fig.keep='last'}
+layout(t(1:2))
+hist(dat$Reaktion)
+hist(dat$Reaktion, breaks = 20)
+```
+
+```{r hist, eval=FALSE}
+hist(dat$Reaktion)
+```
+
+Man erkennt, dass das Histogramm einem Säulendiagramm ähnelt, allerdings
+entspricht eine Säule im Histogramm mehreren Werten, genauer: 
+einem Intervall. Die Höhe der Säulen entspricht dabei der Anzahl der 
+Reaktionszeiten im jeweiligen Intervall.  Die Breite der Intervalle ist
+gleich groß. Sie wird von `hist` automatisch auf Grundlage der Daten 
+erstellt. 
+
+Wenn man eine genauere Information über die Verteilung mit 
+kleineren Intervallen erzeugen möchte, kann man mit dem Argument `breaks`
+die Anzahl der Säulen ungefähr angeben. Man kann über `breaks` die Anzahl
+der Säulen tatsächlich nur ungefähr bestimmen, tatsächlich kann das 
+resultierende Histogramm auch mehr oder weniger Säulen haben. Das liegt
+daran, dass R Optimierungen vornimmt und die genaue Anzahl von den Daten 
+selbst abhängt. Ein Histogramm mit mehr Säulen für unsere Beispiel können
+wir folgendermaßen erzeugen.
+
+```{r hist breaks, eval=FALSE}
+hist(dat$Reaktion, breaks = 8)
+```
+
+### Boxplots
+
+Ebenso wie Histogramme, eigenen sich Boxplots zur Darstellung der Verteilung
+numerischer Variablen. Boxplots erlauben die Darstellung von relativ vielen
+Informationen über die Verteilung bei geringer Größe. Diese Form der 
+Darstellung wird häufig zur explorativen Datenanalyse eingesetzt, vor allem
+lassen sich damit Ausreißer einfach erkennen. Aber auch der Einfluss anderer
+Variablen lässt sich gut darstellen. Einen einfachen 
+Boxplot für die Reaktionszeit können wir mit der Funktion `boxplot` 
+erzeugen.
+
+```{r boxplots, echo = FALSE, fig.keep='last'}
+layout(t(1:2))
+boxplot(dat$Reaktion)
+boxplot(dat$Alter ~ dat$Geschl)
+```
+
+```{r boxplot, eval=FALSE}
+boxplot(dat$Reaktion)
+```
+
+Ein Boxplot besteht aus verschiedenen Elementen, die wir uns im Detail 
+anschauen wollen. Die dicke Linie in der Mitte ist der *Median*. Das 
+Rechteck, die *Box*, entspricht reicht vom 1. Quartil (25. Perzentil) bis
+zum 3. Quartil (75. Perzentil). Im Bereich der Box liegen also die mittleren
+fünfzig Prozent der Daten der Verteilung. Die gestrichelten Linien zu beiden
+Seiten der Box werden als *Whisker* (engl. Schnurhaare) bezeichnet. Die 
+Länge der Linie entspricht maximal dem $1,5$-fachen der Breite der Box.
+Werte außerhalb dieses Abstandes werden potentiell als Ausreißer betrachtet 
+und einzeln im Boxplot dargestellt.
+
+Boxplots lassen sich automatisch nach einem Faktor gruppieren. 
+Für unseren Beispieldatensatz können wir uns Boxplots für das Alter der
+Versuchspersonen separat für Frauen und Männer anzeigen lassen.
+Dazu können wir folgendes Kommando verwenden.
+
+```{r boxplot grouped, eval=FALSE}
+boxplot(dat$Alter ~ dat$Geschl)
+```
+
+Das Zeichen `~` wird auch als Tilde bezeichnet. Links davon steht die
+darzustellende numerische Variable, rechts davon die Gruppierungsvariable,
+ein Faktor. Man kann in dem Beispiel erkennen, dass die Probandinnen im 
+Mittel etwas jünger sind und ihr Alter relativ stark streut. Bei den
+männlichen Teilnehmern liegen die Werte hingegen so dicht beieinander, dass
+es nicht einmal Whisker gibt (da der Interquartilabstand so gering ist).
+
+### Streudiagramme
+
+Streudiagramme eigen sich zur Darstellung des Zusammenhangs zwischen 
+zwei numerischen Variablen. Diese Art der Darstellung ist sehr hilfreich,
+um Trends in den Daten zu erkennen, beispielsweise die Korrelation
+zweier Variablen.
+
+Auch für diesen Zweck kann die Funktion `plot` genutzt werden. Nutzt man
+die Funktion mit *einer* numerischen Variable als Argument, wird diese 
+auf der $y$-Achse gegen den Index auf der $x$-Achse abgetragen. Der Index
+entspricht dabei einer Zählung der Werte und reicht von eins bis zur Anzahl
+der Werte. Wie sehen unsere Reaktionszeiten aus?
+
+```{r par 4, echo = FALSE, fig.keep='last'}
+layout(t(1:3))
+plot(dat$Reaktion)
+plot(dat$Alter, dat$Reaktion)
+plot(dat$Alter, dat$Reaktion)
+abline(lm(dat$Reaktion ~ dat$Alter))
+```
+
+```{r scatter 1, eval=FALSE}
+plot(dat$Reaktion)
+```
+
+In diesem Fall läuft der Index von eins bis 22, da der Datensatz 22 
+Zeilen umfasst. Diese Grafik ist für uns nicht sehr informativ. Wesentlich 
+sinnvoller ist es, die Reaktionszeit in Abhängigkeit vom Alter der
+Versuchsperson darzustellen. Dazu wird die Variable für die $x$-Achse
+als erstes Argument für `plot` benutzt. Das zweite Argument ist die Variable
+für die $y$-Achse, meistens die abhängige Variable.
+
+```{r scatter 2, eval=FALSE}
+plot(dat$Alter, dat$Reaktion)
+```
+
+Dies ist eine sehr informative Grafik, da wir auf diese Weise leicht einen 
+Zusammenhang zwischen Reaktionszeit und Alter feststellen können. Zwar ist
+dieser nicht perfekt, jedoch sieht man den Anstieg der Reaktionszeit mit
+zunehmendem Alter. Um den Zusammenhang deutlicher hervorzuheben lässt sich 
+eine Regressionsgerade zur Abbildung hinzufügen. Mit der Funktion `abline`
+kann man Linien in eine bestehende Abbildung zeichnen. Als Argument 
+verwenden wir dabei das Ergebnis einer Regression mit `lm`.
+
+```{r abline, eval=FALSE}
+abline(lm(dat$Reaktion ~ dat$Alter))
+```
+
+Hier ist es wichtig zu bedenken, dass die Funktion die gerade angezeigte
+Abbildung `verändert`. Das Streudiagramm muss also vorher erzeugt werden.
+Zeichnet man versehentlich eine Linie ein, so muss man das Streudiagramm 
+erneut erzeugt werden.
+
+### Beschriftung von Grafiken
+
+Damit sich Grafiken für einen Betrachter erschließen, ist es nötig, die $x$-
+und $y$-Achse zu beschriften. Wo es nicht eindeutig aus dem Kontext 
+hervorgeht, sollte man auch die Einheit der Messwerte angeben; in unserem 
+letzten Beispiel wurde die Reaktionszeit in Millisekunden gemessen.
+Zur Beschriftung der Achsen stehen für die Funktionen zu Erstellung von 
+Grafiken (z.B., `plot`, `barplot`) die Parameter `xlab` und `ylab` zur
+Verfügung, denen jeweils eine Zeichenkette übergeben werden kann. 
+In unserem Beispiel wählen wir `xlab = "Alter"` für die $x$-Achse und
+`ylab = "Reaktionszeit [ms]"` für die $y$-Achse. Außerdem ist es 
+häufig von Vorteil der Grafik einen aussagekräftigen Titel zu geben. Dies
+geschieht mit dem Parameter `main`. 
+
+```{r scatter 2 text}
+plot(dat$Alter, dat$Reaktion, 
+     xlab = "Alter", ylab = "Reaktionszeit [ms]",
+     main = "Reaktionszeiten nach Alter der Personen")
+```
+
+In einigen Fällen kann es hilfreich sein, der Grafik einen Untertitel zu
+geben, der unter der $x$-Achsenbeschriftung angezeigt wird. Dies kann man
+mit dem Parameter `sub` erreichen.
+
+### Punktformen und -größen
+
+Auch die Form des Punktes lässt sich ändern. So lassen sich beispielsweise
+auch Kreuze oder Dreiecke darstellen. Die Form wird über den Parameter
+`pch` festgelegt. Die Form wird über eine ganze Zahl festgelegt.
+Die Grafik enthält eine Übersicht der Nummern und der entsprechenden 
+Symbole.
+
+```{r scatter points, echo=FALSE}
+plot(rep(0, 21), pch = 0:20, xaxt = "n", yaxt = "n", xlab = "", ylab = "", 
+     main = "Symbole (Paramater pch)")
+text(rep(0, 21) + .3, labels = 0:20)
+```
+
+Die Größe der Symbole wird mit dem Parameter `cex` bestimmt. Diesem kann
+eine reelle Zahl ab $0$ übergeben werden. Der Standardwert ist $1$, größere
+Werte führen zu größeren Symbolen und kleinere Werte zu kleineren Symbolen.
+Die folgende Grafik ist ein Beispiel, wie sich eine Grafik mit größeren
+ausgefüllten Dreiecken erzeugen lässt.
+
+```{r scatter 2 pch cex}
+plot(dat$Alter, dat$Reaktion, pch = 17, cex = 1.8)
+```
+
+### Kurven und Liniendiagramme
+
+Mit R lassen sich sehr einfach Kurven für Funktionen erstellen. 
+Nehmen wir an, wir möchten die Dichtefunktion der Standardnormalverteilung
+zwischen $-4$ und $4$ darstellen, also die bekannte Glockenkurve. 
+Dazu benötigen wir die Funktion
+`dnorm`. Die Kurve können wir mit der praktischen Funktion `curve` durch
+folgendes Kommando zeichnen:
+
+```{r curve 1}
+curve(dnorm(x), -4, 4)
+```
+
+Das erste Argument ist hier die Funktion. Das `x` symbolisiert hier die
+Variable auf der $x$-Achse. Die Zahlen `-4` und `4` geben das Minimum und
+das Maximum auf der $x$-Achse an. Die Funktion `curve` setzt automatisch
+eine Vielzahl von Werten im gegebenen Bereich in die Funktion `dnorm` ein
+und ermittelt den Funktionswert, also die Höhe der Dichtekurve.
+
+Eine Kurve ist ein spezieller Typ von Liniendiagramm. In R werden 
+Liniendiagramme mit der Funktion `plot` erzeugt. 
+
+Zur Veranschaulichung verwenden wir unseren fiktiven Datensazu `Zeitreihe` mit Daten für die Jahre 1990 bis 2004.
+Mit der Funktion `plot` lassen sich diese Daten als Liniendiagramm
+darstellen. Da `plot`, wie wir gesehen haben, im Standardfall bei zwei 
+kontinuierlichen Variablen ein Streudiagramm erstellt, ist es nötig,
+explizit anzugeben, dass wir ein Liniendiagramm erstellen möchten. Dazu 
+wird der Parameter `type` verwendet. Mit `type = "l"` (das `l` steht für 
+Linie) lässt sich ein Liniendiagramm erzeugen.
+
+```{r line plot}
+plot(Zeitreihe$Jahr, Zeitreihe$Wert, type = "l")
+```
+
+Der Parameter `type` ermöglich eine Vielzahl von Möglichkeiten um die Werte
+darzustellen. Die folgende Tabelle und die Grafiken geben eine Übersicht 
+dieser Darstellungsformen.
+
+| Argument         | Darstellung                |
+|------------------|----------------------------|
+|`type = "p"`      | Punkte                     |
+|`type = "l"`      | Linien                     |
+|`type = "b"`      | beides (Punkte und Linien) |
+|`type = "c"`      | einzelne Linien (ohne die Bereiche der Punkte) |
+|`type = "o"`      | beides (übereinander)      |
+|`type = "h"`      | horizontale Balken         |
+|`type = "s"`      | Stufen                     |
+
+```{r plot types, echo=FALSE, fig.keep='last'}
+values <- c("p", "l", "b", "c", "o", "h", "s")
+layout(matrix(1:8, nrow = 2, byrow = TRUE))
+for (v in values)
+  plot(Zeitreihe$Jahr, Zeitreihe$Wert, 
+       type = v, main = paste0("type = \"", v, "\""))
+```
+
+### Linientypen und -stärken
+
+Neben den im Standardfall erzeugten durchgängigen Linien gibt es auch
+gestrichelte und gepunktete Linien sowie Kombinationen davon. Der Linientyp
+wird über den Parameter `lty` (*line type*) festgelegt. Die folgende Grafik
+stellt mögliche Werte für `lty` und die resultierenden Linientypen 
+gegenüber.
+
+```{r line types, echo=FALSE}
+plot(1:6, type = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "", 
+     ylim = c(0.5, 6.5), main = "Linientypen (Paramater lty)")
+for (i in 1:6)
+  lines(c(2, 5.5), c(7 - i, 7 - i), lty = i, lwd = 1.5)
+text(1.5, 1:6, labels = 6:1)
+```
+
+Daneben lässt sich auch die Stärke der Linien variieren, mit dem Parameter 
+`lwd` (*line width*). Dieser hat den Standardwert $1$, durch eine positive 
+reelle Zahl lässt sich die Stärke festlegen. Um beispielsweise eine 
+Liniengrafik mit abwechselnd kurzen und langen Strichen sowie einer etwas
+größeren Stärke zu erstellen, kann man folgendes Kommando verwenden.
+
+```{r line types example}
+plot(Zeitreihe$Jahr, Zeitreihe$Wert, type = "l", lty = 6, lwd = 2.5)
+```
+
+### Linien und Punkte zu Grafiken hinzufügen
+
+Einmal erstellte Plots lassen sich einfach um weitere Grafikelemente erweitern. Dies ist vor allen dann nötig, wenn man mehrer Datensätze
+in einer Grafik vergleichen will. Nehmen wir an, neben den bereits oben
+genutzten Daten `Jahr` und `Wert` (in `Zeitreihe`) haben wir Daten zu einer 
+anderen Zeitreihe. Diese Daten nennen wir `Jahr_2` und `Wert_2`.
+
+```{r Jahr_2 Wert_2}
+# erzeugen von zwei Vektoren mit fiktiven Daten
+Jahr_2 <- 1980:2000
+Wert_2 <- rnorm(21, 1, 2)
+```
+
+Oben haben wir gesehen, dass sich über den Befehl 
+`plot(Zeitreihe$Jahr, Zeitreihe$Wert, type = "l")` einfach eine Liniengrafik
+erstellen lässt.
+Weitere Linie können wir mit dem Befehl `lines` hinzufügen. Dabei wählen
+wir einen gestrichelten Linientyp (`lty = 2`) um beide Datensätze
+unterscheiden zu können.
+
+```{r plot add lines}
+plot(Zeitreihe$Jahr, Zeitreihe$Wert, type = "l", lty = 1)
+lines(Jahr_2, Wert_2, lty = 2)
+```
+
+Es fällt auf, dass sich weder $x$- noch $y$-Achse verändern, so dass man
+nur einen Ausschnitt des Linienverlaufs basierend auf den neuen Daten
+erkennen kann. Wir müssen daher die Begrenzungen beider Achsen an die
+Daten anpassen. Dazu müssen wir allerdings eine neue Grafik erstellen und
+von vornherein die Begrenzungen der Achsen angeben. Dazu betrachten wir
+zunächst die Spannweite der Daten auf der $x$-Achse, also `Zeitreihe$Jahr` 
+und
+`Jahr_2`. Dazu nutzen wir die Vektoren als Argumente für die Funktion
+`range`, die uns Minimum und Maximum der Daten ausgibt. Analog gilt dies
+für die $y$-Achse (`Zeitreihe$Wert` und `Wert_2`).
+
+```{r range}
+range(Zeitreihe$Jahr, Jahr_2)
+range(Zeitreihe$Wert, Wert_2)
+```
+
+Wir müssen die Achsenausschnitte daran anpassen um die Kurvenverläufe beider
+Datensätze in einer Grafik darstellen zu können. Dazu stehen uns die 
+Parameter `xlim` für die $x$-Achse und `ylim` für die $y$-Achse zur
+Verfügung. Diesen können wir jeweils das Resultat von `range` übergeben.
+Damit erzeugen wir nun zunächst die Grafik für den ersten Datensatz und
+fügen mit `lines` weitere Linien hinzu.
+
+```{r plot add lines range}
+plot(Zeitreihe$Jahr, Zeitreihe$Wert, type = "l", lty = 1,
+     xlim = range(Zeitreihe$Jahr, Jahr_2), 
+     ylim = range(Zeitreihe$Wert, Wert_2))
+lines(Jahr_2, Wert_2, lty = 2)
+```
+
+Analog zur Funktion `lines` lassen sich mit `points` Punkte zu einer
+bestehenden Grafik hinzufügen. Eine weitere Möglichkeit, Grafikelemente
+zu einer bestehenden Abbildung hinzuzufügen. bietet das Argument
+`add = TRUE` für die `plot`-Funktion. Damit wird, im Gegensatz zum
+Standardfall, keine neue Abbildung erzeugt, sondern die bestehende Grafik+
+erweitert. Unabhängig davon, ob man `lines`, `points` oder `plot` mit 
+`add = TRUE` verwendet, muss man darauf achten, dass die jeweils aktuelle
+Grafik modifiziert wird. Fügt man dabei versehentlich etwas hinzu, so muss
+man die ursprüngliche Grafik erneut erzeugen. Das Hinzufügen von 
+Grafikelementen lässt sich nicht rückgängig machen.
+
+### Farbe
+
+Die bisher erzeugten Grafiken waren auf schwarz und weiß (sowie 
+Zwischentöne) beschränkt. Aber R kann auch Farben darstellen. Das ist
+hilfreich, um verschiedene Punkte oder Linien leicht voneinander 
+unterscheiden zu können.
+
+Um die Farben in Grafiken festzulegen, wird der Parameter `col` verwendet.
+R bietet uns drei Möglichkeiten, die Farbe anzugeben. Diese wollen wir 
+im Folgenden genauer betrachten:
+
+* __Zahl__: Die einfachste Variante stellt die Verwendung einer ganzen Zahl von 1 bis 8. Damit können wir die acht Farben erzeugen, die in folgender
+Abbildung zu sehen sind. Für viele Zwecke sind diese Farben ausreichend.
+
+```{r colours, echo=FALSE}
+plot(rep(0, 8), pch = 15, cex = 5, col = 1:8,
+     xaxt = "n", yaxt = "n", xlab = "", ylab = "", 
+     main = "Farben (Paramater col)")
+text(rep(0, 8) + .5, labels = 1:8)
+text(rep(0, 8) - .5, labels = palette())
+```
+
+* __Farbname__: Wir können auch statt einer Zahl den englischen Namen der 
+Farbe als Zeichenkette verwenden. Dies hat den Vorteil, dass man sich keine
+Nummern merken muss um eine bestimmte Farbe auszuwählen. Beispiel für 
+Farbenname finden sich in obiger Abbildung. Eine Übersicht über die 
+verfügbaren Namen liefert das Kommando `colors()`. Nicht weniger als
+`r length(colors())` Zeichenketten gibt dieser Befehl aus. Anzumerken
+ist dabei allerdings, dass sich nicht alle dazugehörigen Farben
+unterscheiden, so sind beispielsweise `"grey"` und `"grey"` identisch.
+Will man die Übersicht auf verschiedene Farben beschränken, muss man
+`colors(distinct = TRUE)` verwenden, und man erhält immerhin noch
+`r length(colors(TRUE))` Farben.
+
+* __RGB-Werte__: Volle Flexibilität über die Farbauswahl erlaubt die 
+Spezifikation über RGB-Werte. Die Abkürzung RGB setzt sich zusammen aus den drei Farben Rot, Grün und Blau. Dabei werden alle Farben durch das additive
+Mischen dieser drei Farben zusammengesetzt. Dabei ergibt die Abwesenheit
+aller drei Farben die Farbe Schwarz, während die volle Ausprägung der drei
+Farben die Farbe Weiß ergibt. 
+
+Da die RGB-Farben der Benutzerin die meiste Flexibilität in der
+Farbauswahl erlauben, werden wir uns im Folgenden diese Funktionalität
+im Detail ansehen. In R können RGB-Farben mit der Funktion `rgb`
+erzeugt werden. Dieser Funktion werden drei reelle Zahlen von 0 bis 1 
+als Argumente übergeben, jeweils ein Wert für Rot, Grün und Blau. Dabei
+bedeutet 0 die Abwesenheit der jeweiligen Farbe, 1 hingegen ihre maximale Ausprägung. Durch Mischen der drei Farben lassen sich äußerst viele 
+verschiedene Farben erzeugen. Die Funktion `rgb` erzeugt dabei eine
+Zeichenkette. Ein dunkles Grau können wir über niedrige aber identische
+Werte erzeugen.
+
+```{r rgb 100 100 100}
+rgb(0.3, 0.3, 0.3)
+```
+
+Die Ausgabe der `rgb`-Funktion ist eine Zeichenkette, die der erzeugten
+Farbe entspricht, in diesem Fall ein dunkles Grau. Diese Zeichenkette
+lässt sich als Parameter für `col` verwenden. Nachfolgende Abbildung
+gibt eine Übersicht über verschiedene RGB-Werte und die resultierenden
+Farben.
+
+```{r rgb colours, echo=FALSE, fig.height=7}
+rgb_values <- matrix(c(0, 0, 0,
+                       1, 1, 1,
+                       0.3, 0.3, 0.3,
+                       0.6, 0.6, 0.6,
+                       1, 0, 0,
+                       0, 1, 0,
+                       0, 0, 1,
+                       0, 0, 0.5,
+                       0.5, 0, 0.5,
+                       0.8, 0, 0.5,
+                       0.8, 1, 0.5),
+                     ncol = 3, byrow = TRUE,
+                     dimnames = list(NULL, c("R", "G", "B")))
+rgb_colors <- apply(rgb_values, 1, function(x) 
+  do.call(rgb, unname(as.list(x))))
+n_col <- length(rgb_colors)
+plot(rep(-0.2, n_col), n_col:1, pch = 15, cex = 5, col = rgb_colors,
+     xaxt = "n", yaxt = "n", xlab = "", ylab = "", 
+     main = "Farben mit der Funktion `rgb`", ylim = c(0.5, n_col + 1.5),
+     xlim = c(-2.5, 0.3))
+text(c(-2, -1.5, -1), rep(n_col + 1, 3), labels = c("Rot", "Grün", "Blau"),
+     font = 2)
+points(rep(-0.2, n_col), n_col:1, pch = 0, cex = 5, col = "black", 
+       lwd = 1.5)
+for (i in n_col:1) {
+  values <- rgb_values[n_col + 1 - i, ]
+  text(c(-2, -1.5, -1), rep(i, 3), labels = values)
+}
+
+```
+
+Farben eignen sich in besonderer Weise, verschiedene Gruppen in Grafiken
+zu veranschaulichen. Weiter oben haben wir bereits ein Streudiagramm
+mit Alter und Reaktionszeit unseres Beispieldatensatzes erzeugt. Wir können
+mit unserem Wissen über Farben in R nun auch violette (`rgb(1, 0.2, 0.8)`)
+Rechtecke erzeugen.
+
+```{r coloured graphs, echo = FALSE, fig.keep='last'}
+layout(t(1:2))
+plot(dat$Alter, dat$Reaktion, pch = 15, col = rgb(1, 0.2, 0.8))
+Farben <- ifelse(dat$Gruppe == "Kontroll", "blue", "green")
+plot(dat$Alter, dat$Reaktion, pch = 15, col = Farben)
+```
+
+```{r coloured squares, eval=FALSE}
+plot(dat$Alter, dat$Reaktion, pch = 15, col = rgb(1, 0.2, 0.8))
+```
+
+Interessant wird der Einsatz von Farbe jedoch besonders dann, wenn wir 
+verschiedene Farben zur Veranschaulichung verschiedener Gruppen einsetzen.
+Das Streudiagramm
+wollen wir nun um verschiedene Farben für Experimental- und Kontrollgruppe
+ergänzen. Dazu können wir `col` einen Vektor übergeben, der genau soviele
+Elemente hat wie es Punkte im Diagramm gibt. Wollen wir uns einen solchen
+Vektor für `dat$Gruppe` erzeugen, können wir mit der `ifelse`-Funktion
+leicht einen Vektor mit zwei verschiedenen Farben erstellen. Mit folgenden
+Kommandos erzeigen wir den Vektor `Farbe` mit den Farben Blau (`"blue"`)
+und Grün (`"green"`).
+Im zweiten Schritt wird dieser Vektor als Parameter für `col` verwendet.
+
+```{r colour vector}
+Farben <- ifelse(dat$Gruppe == "Kontroll", "blue", "green")
+Farben
+```
+
+```{r green/blue squares, eval=FALSE}
+plot(dat$Alter, dat$Reaktion, pch = 15, col = Farben)
+```
+
+In der erzeugten Grafik repräsentieren blauen Quadrate die
+Daten der Kontrollgruppe und die grünen Quadrate die Daten der
+Experimentalgruppe. 
+
+### Legenden
+
+In den oberen Abschnitten haben wir gesehen, wie wir Abbildungen mit 
+verschiedenen Farben, Linien und Symbolen erstellen können. Im Rahmen der
+Funktion `barplot` haben wir gesehen, wie man für Säulendiagramme
+automatisch Legenden erzeugen kann. In diesem Abschnitt werden die 
+Einzelheiten zur Erzeugung von Legenden in beliebigen Abbildungen erläutert.
+
+Die Funktion `legend` erlaubt die Erstellung einer Legende für die
+aktuelle Abbildung. Zur Veranschaulichung schauen wir uns noch einmal die 
+oben erzeugte Streugrafik mit den unterschiedlichen Farben für Kontroll-
+und Experimentalgruppe an. Es ist sicherlich auch in diesem Fall hilfreich,
+wenn man anhand einer Legende leicht erkennen kann, welche Gruppen
+die Farben repräsentieren. Dazu werden wir der Grafik eine Legende
+mit `legend` hinzufügen.
+
+```{r}
+Farben <- ifelse(dat$Gruppe == "Kontroll", "blue", "green")
+plot(dat$Alter, dat$Reaktion, pch = 15, col = Farben)
+# Erstellen der Legende
+legend(x = "topleft", legend = c("Kontrollgruppe", "Experimentalgruppe"),
+       title = "Gruppe", pch = 15, col = c("blue", "green"))
+```
+
+Der Aufbau der Funktion `legend` ist ziemlich leicht, wenn man mit der
+Funktion `plot` und ihren Argumenten vertraut ist. In unserem Beispiel
+ist das Argument `x = "topleft"` nötig, um die Legende oben links zu
+platzieren. (Details über andere Positionen finden sich im Abschnitt
+zu Säulen- und Balkendiagrammen.) Mit dem Parameter `legend` legen wir
+die Beschriftung der Elemente der Legende fest; in diesem Fall übergeben
+wir einen Vektor mit den Bezeichnungen für die Gruppen 
+(`c("Kontrollgruppe", "Experimentalgruppe")`). Durch das Argument 
+`title = "Gruppe"` legend wir fest, dass die Legende den Titel "Gruppe"
+erhalten soll. Den Parameter `pch` haben wir schon kennengelernt, über ihn 
+wird die Form der Symbole festgelegt. Als Wert dafür verwenden wir `15`,
+da wir die Grafik mit diesem Symbol (Quadrat) erzeugt haben.
+Am wichtigsten für unsere Legende ist schließlich der Parameter `col`, der 
+die Farben der Symbole festlegt (`c("blue", "green")`). Dabei ist es wichtig
+darauf zu achten, dass die Reihenfolge der Farben (Parameter `col`) der 
+Reihenfolge der Legendenbeschriftungen (Parameter `legend`) entspricht.
+
+Übrigens können wir mit der Funktion `legend` auch den Parameter `lty`
+nutzen, wenn wir eine Legende für verschiedene Linientypen benötigen.
+Auch die Legende wird der jeweils aktiven Grafik hinzugefügt, sodass
+Änderungen der Legende ein erneutes Erzeugen der Grafik nötig machen.
+
+### Grafiken speichern
+
+Wenn wir eine Abbildung in einem anderen Dokument verwenden oder sie
+anderen zur Verfügung stellen wollen, müssen wir sie abspeichern. Wir können
+Abbildungen sowohl mit RStudio als auch R-Kommandos speichern.
+
+#### Grafiken exportieren in RStudio
+
+In der Regel wird RStudio mit einem Bereich für Grafiken verwendet (Reiter
+"Plots"), der sich meist unten rechts befindet. Dort lassen sich mit den
+Pfeilen alle erzeugten Abbildungen auswählen. Durch einen Klick
+auf "Export" öffnet sich ein Menü mit drei Auswahlmöglichkeiten:
+
+* "Save Plot as Image": Die Grafik als Bilddatei speichern.
+* "Save Plot as PDF": Die Grafik als PDF-Dokument speichern.
+* "Copy Plot to Clipboard": Die Grafik in die Zwischenablage kopieren.
+
+Diese drei Möglichkeiten wollen wir uns nachfolgend im Detail ansehen. 
+Die Entscheidung für eine dieser Möglichkeiten hängt vom weiteren Vorgehen
+ab. Verschiedene Verwendungszwecke erfordern verschiedene Formate.
+
+*Die Grafik als Bilddatei speichern.* Für die meisten Anwendungsfelder
+ist das Speichern als Bilddatei das Mittel der Wahl. Bilddateien sind
+besondern geeignet zum Verschicken per Email sowie zum Einbinden
+von Abbildungen in Websites (z.B. Foren). Aber auch in 
+Textverarbeitungs- und Präsentationsanwendungen können Abbildungen über
+Bilddateien eingebunden werden
+
+Es öffnet sich ein Fenster, in dem 
+verschiedene Einstellungen vorgenommen werden können. Unter "Image Format"
+kann man sich ein Dateiformat aussuchen. In der Regel sollte man sich hier
+für "PNG" (Portable Network Graphic) entscheiden, da dieses Format 
+Bilddateien mit relativ geringer
+Größe bei voller Qualität erlaubt. Außerdem kann man das Verzeichnis 
+("Directory") wählen, in dem die Datei gespeichert werden soll. Im Feld
+"File name" kann man den Dateinamen eingeben.
+
+Zudem kann man in diesem Fenster noch die Breite ("Width") und die Höhe
+("Height") der Abbildung verändern. Die Angaben sind in Pixel. Möchte
+man das ursprüngliche Seitenverhältnis beibehalten, muss man einen Haken
+bei "Maintain aspect ratio" setzen. Dabei ist es wichtig, die Grafik in
+einer Größe zu speichern, die der späteren Darstellungsform entspricht.
+Das Vergrößern von Bilddateien führt zu verwaschenen Abbildungen.
+
+Über "Save" kann man die Grafik speichern. Man findet die Datei danach in 
+dem gewählten Verzeichnis.
+
+*Die Grafik als PDF-Dokument speichern.* Im Gegensatz zu Bilddateien
+werden im Format PDF (Portable Document File) die Abbildungen so 
+gespeichert, dass die Lage der einzelnen Bildelemente in der Grafik 
+gepeichert wird. Dadurch lassen sich Abbildungen im PDF-Format beliebig
+vergrößern, ohne dass sich die Qualität verschlechtert. Allerdings
+können sehr komplexe Grafiken mit vielen Punkten deshalb auch sehr 
+viel Speicherplatz einnehmen. Im PDF-Format sollten Abbildungen dann
+gespeichert werden, wenn sie für Veröffentlichungen vorgesehen sind.
+Auf diese Weise wird die höchste Qualität erreicht.
+
+Auch im Fenster für das PDF-Format kann man Verzeichnis und Dateinamen 
+wählen. Da das Format PDF nicht pixelbasiert ist, wird die Größe jedoch
+nicht über die Anzahl der Pixel festgelegt, sondern anhand der tatsächlichen
+Größe in *Zoll* (1 Zoll = 2,54 cm). Man kann auch aus festgelegten
+Seitengrößen wählen, wie z.B. DIN A4. Unter "Orientation" kann man 
+festlegen, ob man die Seite im Hochformat ("Portrait") oder Querformat
+("Landscape") speichern möchte.
+
+*Die Grafik in die Zwischenablage kopieren.* Das Kopieren in die 
+Zwischenablage ist die einfachste Möglichkeit, wenn man die Abbildung
+sofort in einer anderen Anwendung weiterverwenden möchte. So kann
+man die Grafik dadurch in einem Grafikbearbeitungsprogramm oder einer
+Textverarbeitung einfügen.
+
+Im Fenster kann man die Größe der Abbildung (in Pixeln) auswählen
+und sie über "Copy Plot" in die Zwischenablage kopieren. Danach
+kann man sie einfach in einer anderen Anwendung einfügen, in Windows z.B.
+mit der Tastenkombination <kbd>Strg</kbd> + <kbd>V</kbd>.
+
+#### Grafiken speichern über Kommandos
+
+Mann muss nicht RStudio verwenden, um Abbildungen in R zu speichern, auch
+wenn die Bedienung sehr komfortabel ist. Natürlich lassen sich auch 
+R-Kommandos nutzen um Abbildungen in verschiedenen Formaten zu speichern.
+
+Um eine Grafik als Bilddatei abzuspeichern, empfiehlt sich das Format
+PNG. Dazu gibt es in R die Funktion `png`. Als Argument verwendet man den
+Namen unter dem die Datei gespeichert werden soll. Außerdem kann man über
+die Parameter `width` sowie `height` die Breite und Höhe der Grafik in 
+Pixeln festlegen. Die Standardwerte sind jeweils `480`. Wichtig ist, dass
+man die Funktion `png` *vor* dem Erzeugen des Plots verwenden muss, damit
+dieser gespeichert werden kann. Ein typisches Beispiel sieht folgendermaßen
+aus.
+
+```{r png plot, eval=FALSE}
+# Festlegen des Ausgabeformats
+png("Abbildung1.png", width = 400, height = 300)
+# Erzeugen der Grafik
+plot(dat$Geschl)
+# das Speichern abschließen
+dev.off()
+```
+
+Diese Kommandofolge speichert ein Säulendiagramm, welches wir zu Anfang 
+dieses Abschnittes kennengelernt haben. Die Datei wird dabei im aktuellen
+Arbeitsverzeichnis (`getwd()`) gespeichert. Natürlich kann man den
+Dateinamen um das gewünscht Verzeichnis ergänzen, wenn die Grafik woanders gespeichert werden soll, z.B. 
+`"C:/Users/Benutzername/Desktop/Abbildung1.png"`.
+
+Beim Speichern ist immer eine Abfolge von drei Schritten einzuhalten:
+
+1. Festlegen des Ausgabeformats (z.B. Funktion `png`)
+2. Erzeugen der eigentlichen Grafik
+3. Abschließen des Speichervorgangs mit `dev.off()`
+
+Das Erzeugen der Grafik ist dabei nicht auf ein Kommando beschränkt. Es
+lassen sich auch Grafiken durch mehrere Befehle erstellen, beispielsweise
+durch das Hinzufügen einer Legende. Wenn die Grafik fertig ist, *muss* der
+Speichervorgang mit dem Befehl `dev.off()` beendet werden. Dieser Punkt ist
+sehr wichtig. Vergisst man diesen letzten Schritt, wird die Grafik
+von anderen Abbildungen überschrieben, die eventuell später erstellt werden. 
+Die Benutzung von `dev.off()` ist daher sehr wichtig.
+
+Auf ähnliche Weise kann man auch Abbildungen im PDF-Format speichern. Dazu
+steht die Funktion `pdf` zur Verfügung. Die
+Benutzung dieser Funktion ist sehr ähnlich zu `png`. Die Größe der Abbildung
+wird jedoch in Zoll und nicht in Pixeln angegeben. Auch beim Speichern
+von PDF-Dateien ist die Abfolge der drei Schritte einzuhalten
+(`pdf(...); plot(...); dev.off()`).
+
+
+## Grafiken mit ggplot2
+
+Für einfache Grafiken sind die Standardfunktionen in R ausreichend.
+Die Funktionalität durch das Paket `ggplot2` bietet jedoch gerade für
+komplexe Abbildungen mit vielen unterschiedlichen Elementen eine relativ
+leicht zugängliche Alternative. Zudem benötigt man für umfangreiche
+Abbildungen in der Regel weniger R-Kommandos als mit den 
+Standardgrafikfuntionen. Die Folgende Übersicht beschränkt sich auf die 
+wichtigsten Punkte, die man zum Arbeiten mit `ggplot2` wissen muss.
+Eine umfangreiche, aber sehr anschauliche Einführung bietet Chang (2012).
+
+### Säulen- und Balkendiagramme
+
+Auch die Einführung in die Funktionalität von `ggplot2` soll am Beispiel
+des Säulen- bzw. Balkendiagramms erfolgen. Zunächst einmal ist es für die 
+Arbeit mit `ggplot2` nötig, dass das Paket mit der `library`-Funktion
+geladen wird, damit anschließend alle Funktionen des Paketes genutzt werden
+können.
+
+```{r lib ggplot2}
+library(ggplot2)
+```
+
+Sehen wir uns zunächst einmal die R-Kommandos an, mit denen sich ein 
+einfaches Säulendiagramm erstellen lässt. Daran erkennt man auch die 
+generelle Vorgehensweise mit `ggplot2`.
+
+```{r gg barplot}
+ggplot(dat, aes(x = Geschl)) +
+  geom_bar()
+```
+
+Zunächst beginnt man mit der Funktion, die die Grundlage für alle Grafiken
+darstellt. Dort legen wir mit dem ersten Argument den Datensatz fest. In
+diesem Beispiel ist `dat` der bekannte Datensatz des 
+Reaktionszeitexperimentes.
+
+Als zweites Argument folgt wieder eine Funktion:
+`aes` (aesthetics). Diese Funktion ist eines der Kernstücke von `ggplot2`
+und erlaubt das einfache Erstellen komplexer Grafiken. Mit `aes` werden 
+Variablen auf bestimmte *Skalen* abgebildet. Im obigen Beispiel wird die
+Variable `Geschl` auf die $x$-Achse (`x`) abgebildet. Das heißt, die 
+verschiedenen Ausprägungen von `Geschl` finden sich in der erzeugten Grafik
+auf der $x$-Achse wieder. Komfortable ist dabei, dass wir statt `dat$Geschl`
+einfach `Geschl` verwenden können, da wir `dat` bereits als erstes Argument
+von `ggplot` festgelegt haben.
+
+Danach folgt eine zweite Funktion, `geom_bar`, die über `+` mit der anderen
+verknüpft wird. Durch dieses Verknüpfen von Funktionen mit `+` lassen sich
+Abbildungen leicht um weitere Elemente erweitern, da beliebig viele 
+Funktionen "hinzuaddiert" können.
+
+Die Funktion `geom_bar` ist eine Funktion der Klasse der *Geoms* (geometric
+objects), die die eigentliche Abbildung erzeugen. Die Geoms sind das zweite
+Kernstück von `ggplot2`. Sie sind zur Erzeugung der grafischen Elemente
+nötig. In obigem Beispiel erzeugt `geom_bar` ein Säulendiagramm.
+
+Wir werden unser Beispiel nun etwas komplexer gestalten. Dazu sehen
+wir uns folgende R-Kommandos an:
+
+```{r gg barplot 2}
+ggplot(dat, aes(x = Geschl, fill = Gruppe)) +
+  geom_bar(position = "dodge") +
+  coord_flip()
+```
+
+In `aes` bilden wir `Gruppe` auf `fill` (Füllung) ab. Dabei entspricht
+`fill` der Farbe der Füllung der Balken. Ein netter Nebeneffekt ist,
+dass `ggplot2` automatisch verschiedene Farben auswählt und sogar eine 
+entsprechende Legende erzeugt.
+
+Außerdem haben wir ein Argument
+zu `geom_bar` hinzugefügt: `position = "dodge`. Dadurch werden die Balken
+nebeneinander angeordnet. Will man die Balken übereinander anordnen, so ist
+`position = "stack"` zu verwenden.
+
+Mit `+` haben wir außerdem eine andere Funktionen zur Grafik hinzugefügt.
+Die Funktion `coord_flip` vertauscht $x$- und $y$-Achse, so dass aus 
+einem Säulendiagramm ein Balkendiagramm wird.
+
+### Histogramme und Boxplots
+
+Auch die Erzeugung von Histogrammen und Boxplots zur Visualisierung der
+Verteilung numerischer Variablen ist mit `ggplot2` denkbar einfach. Dazu
+nutzt man die entsprechenden Geoms.
+
+Ein Histogramm der Reaktionszeitdaten kann man mit `geom_histogram`
+erzeugen. Dabei wird `Reaktion` auf die $x$-Achse abgebildet 
+(`x = Reaktion`). Außerdem können wir mit dem Parameter `binwidth`
+in `geom_histogram` die Breite der Säulen des Histogramms festlegen.
+In diesem Beispiel wählen wir eine Breite von jeweils 50 ms 
+(`binwidth = 50`).
+
+```{r gg histogram}
+ggplot(dat, aes(x = Reaktion)) +
+  geom_histogram(binwidth = 50)
+```
+
+Mit `geom_boxplot` können wir Boxplots erzeugen. Dazu bilden wir die 
+Variable `Reaktion` in `aes` auf die $y$-Achse ab. Da wir einen Boxplot
+für beide Gruppen haben möchten, wird `Gruppe` auf die $x$-Achse 
+abgebildet.
+
+```{r gg boxplot}
+ggplot(dat, aes(x = Gruppe, y = Reaktion)) +
+  geom_boxplot()
+```
+
+An diesen ersten Beispielen wird deutlich, dass die Syntax der Funktionen
+von `ggplot2` sehr einheitlich. Man gewöhnt sich sehr schnell daran,
+sich auf die Abbildungen der Variablen auf Skalen (`aes`) und die 
+Auswahl von Geoms zu fokussieren.
+
+### Streudiagramme
+
+Streu- oder Punktdiagramme kann man mit `geom_point` erzeugen. Wir
+wollen uns ansehen, wie sich die Reaktionszeit in Abhängigkeit vom Alter
+der Versuchspersonen entwickelt und bilden `Alter` auf die $x$-Achse sowie
+`Reaktion` auf die $y$-Achse ab.
+
+```{r gg point}
+ggplot(dat, aes(x = Alter, y = Reaktion)) +
+  geom_point()
+```
+
+Das Aussehen der Symbole lässt sich durch verschiedene Parameter in der
+Funktion `geom_point` festlegen. Die Form des Symbols legt man über
+`shape` (Form) fest. Dabei wird die Form über eine ganze Zahle festgelegt
+(analog zu `pch` in den Standardgrafiken.) Über `size` (Größe) kann man
+die Größe der Symbole bestimmen (analog zu `cex` in den Standardgrafiken).
+Schließlich lässt sich über den Parameter `colour` (Farbe) eine Farbe für
+die Symbole auswählen.
+
+Das folgende Beispiel zeigt die R-Kommandos für die Erzeugung eines
+Streudiagramms mit großen, blauen Sternchen.
+
+```{r ggpoint shape}
+ggplot(dat, aes(x = Alter, y = Reaktion)) +
+  geom_point(shape = 8, size = 5.3, colour = "blue")
+```
+
+Wir können diese Grafik außerdem nach Experimental- und Kontrollgruppe
+gruppieren. Dazu wollen wir den Punkten zur leichten Unterscheidbarkeit
+sowohl unterschiedliche Farben als auch unterschiedliche Formen geben.
+
+Wir bilden dazu `Gruppe` auf die Skalen `colour` und `shape` 
+ab. Um die Symbole deutlicher erkennen zu können, werden wir sie außerdem
+vergrößern. Dau nutzen wir dem Parameter `size` der Funktion 
+`geom_point`, dem wir eine positive reelle Zahl übergeben können. Für das
+Beispiel wählen wir 4,5.
+
+```{r gg point 2}
+ggplot(dat, aes(x = Alter, y = Reaktion, 
+                colour = Gruppe, shape = Gruppe)) +
+  geom_point(size = 4.5)
+```
+
+Automatisch wählt `ggplot2` für uns die Farben und Symbole aus, außerdem
+wird eine Legende für beide Skalen erstellt. Mit den Standardgrafiken 
+wäre die Erstellung einer vergleichbaren Abbildung deutlich aufwendiger
+gewesen.
+
+Es ist sehr praktisch, dass wir verschiedene Parameter (z.B. `shape`, 
+`size` und `colour`) innerhalb von `aes` nutzen können um 
+automatisch Unterschiede zwischen verschiedene Gruppen zu visualisieren.
+Nutzen wir dieselben Parameter außerhalb von `aes` in den Geoms legen
+wir hingegen das Aussehen für *alle* Datenpunkte fest.
+
+Auch mit `ggplot2` können wir eine Regressionsgerade über die Punkte legen.
+Dazu werden wir einfach einen weiteren Geom zu dem Plot mit `+` hinzufügen:
+`geom_smooth`. Als erstes Argument dazu verwenden wir `method = lm`, womit 
+wir die Regressionsfunktion (`lm`) als Methode zur Erzeugung der Line 
+festlegen. Über das Argument `se = FALSE` wird festgelegt, dass keine 
+Konfidenzintervalle für die Geraden gezeichnet werden. 
+
+```{r gg point with line}
+ggplot(dat, aes(x = Alter, y = Reaktion, 
+                colour = Gruppe, shape = Gruppe)) +
+  geom_point(size = 4.5) +
+  geom_smooth(method = lm, se = FALSE)
+```
+
+Übrigens: Durch die Verwendung von `se = TRUE` werden graue 
+teiltransparente Konfidenzintervalle um die Linien gezeichnet. 
+
+### Liniendiagramme
+
+Im Anschnitt zu den Standardgrafiken  haben wir den Datensatz `Zeitreihe` 
+verwendet. Für diese Zeitreihendaten
+eigenen sich besonders Liniendiagramme, da es einen Reihenfolge der Daten
+(`Wert`) gibt, die sich durch das Datum (z.B. `Jahr`) ergibt.
+
+```{r gg line}
+ggplot(Zeitreihe, aes(x = Jahr, y = Wert)) +
+  geom_line()
+```
+
+Auch bei Liniengrafiken kann man sehr leicht das Aussehen ändern.
+Über den Parameter `linetype` (Linientyp) lässt sich festlegen, welche
+Art von Linie gezeichnet werden soll (analog zu `lty` in den 
+Standardgrafiken). Außerdem lassen sich über `size` und `colour` die
+Stärke bzw. die Farbe der Linie modifizieren.
+
+Im folgenden Beispiel erzeugen wir nicht nur eine rote gestrichelte Linie,
+sondern fügen auch ein weiteres Geom zu der Grafik hinzu. Dazu verbinden
+wir `geom_point` mittels `+` mit den anderen Kommandos.
+
+```{r gg line 2}
+ggplot(Zeitreihe, aes(x = Jahr, y = Wert)) +
+  geom_line(linetype = 2, size = 1.5, colour = "red") +
+  geom_point(size = 3.5, colour = "blue")
+```
+
+Schließlich erhalten wir eine Kombination aus Punkt- und Liniengrafik.
+Dabei ist darauf zu achten, dass die Reihenfolge der Geoms wichtig ist.
+Im obigen Beispiel haben wir zuerst die Linien erstellt und später die 
+Punkte hinzugefügt, so dass in der resultierenden Abbildung, die Punkte
+im Vordergrund sind. Vertauscht man hingegen die Reihenfolge, also fügt
+erst Punkte und dann Linien hinzu, erhält man eine Grafik, in der die Punkte
+im Hintergrund sind.
+
+### Beschriftung von Grafiken
+
+Auch `ggplot2` erlaubt eine sehr einfache Beschriftung der Grafiken.
+Dazu werden die dafür nötigen Funktionen nach dem bekannten Muster 
+mittels `+` zur Abbildung hinzugefügt.
+
+Die Funktionen `xlab` und `ylab` legen die Beschriftung der $x$- und der
+$y$-Achse fest. Den Titel der Grafik kann man über `ggtitle` festlegen. 
+Folgende Kommandos erweitern das oben erzeugte Liniendiagramm um 
+Achsenbeschriftungen und einen Titel.
+
+```{r gg line titles}
+ggplot(Zeitreihe, aes(x = Jahr, y = Wert)) +
+  geom_line() +
+  xlab("Jahr der Messung") +
+  ylab("Messwert") +
+  ggtitle("Zeitreihe")
+```
+
+### Daten aggregieren
+
+Wenn wir aggregierte Daten, z.B. Mittelwerte, mit den 
+Standardgrafikfunktionen visualisieren wollten, mussten wir diese 
+aggregierten Werte vorher über entsprechende Funktionen selbst ausrechnen.
+Die Funktionen von `ggplot2` erlauben auch hier eine einfachere 
+Herangehensweise und erlauben das Aggregieren von Daten sowie die Erstellung
+der Abbildung in einem Schritt.
+
+Für diesen Fall ist die Funktion `stat_summary` vorgesehen, die im 
+Wesentlichen zwei Informationen braucht: Wie sollen die Daten aggregiert 
+werden und welches Geom soll zur Darstellung verwendet werden.
+
+Die folgenden R-Kommandos erzeugen ein Säulendiagramm der Mittelwerte
+der Reaktionszeit für beide Gruppen.
+
+```{r stat_summary bar}
+ggplot(dat, aes(x = Gruppe, y = Reaktion)) +
+  stat_summary(fun.y = mean, geom = "bar")
+```
+
+Dabei wird in gewohnter Weise die Variable `Gruppe` auf die $x$-Achse
+abgebildet. Da die Höhe der Säulen der mittleren Reaktionszeit entsprechen
+soll, bilden wir `Reaktion` auf die $y$-Achse ab. 
+
+In der Funktion 
+`stat_summary` sehen wir das Argument `fun.y = mean`. Das bedeutet, dass
+die Funktion `mean`, zur Berechnung des Mittelwertes, auf die Variable
+der $y$-Achse angewendet wird. Dabei können wir für `fun.y` auch andere
+Funktionen, z.B. `median` oder `max` verwenden. Auch eigene Funktionen
+lassen sich nutzen. 
+
+Das Argument `geom = bar` legt fest, welches Geom zur Visualisierung 
+der Ergebnisse verwendet wird. Auf diese Weise kann man nicht nur 
+Säulendiagramme erzeugen, sondern beispielsweise auch Linien- 
+(`geom = "line"`) und Punktdiagramme (`geom = "point"`).
+
+Schauen wir uns ein weiteres Beispiel mit einen weiteren 
+Gruppierungsvariable an. Wir wollen diesmal die mittleren Reaktionszeiten
+sowohl nach Gruppe als auch nach Geschlecht gruppieren. Außerdem
+wollen wir ein Liniendiagramm erstellen.
+Wir bilden `Geschl` auf die Farbskala ab, um die Linien nach Geschlecht
+unterscheiden zu können. 
+
+Außerdem verwenden wir das 
+Argument `group = Geschl`. Dieses Argument ist sehr wichtig und sein
+Fehlen eine häufige Fehlerquelle beim Erstellen von Liniengrafiken
+mit einer Faktorvariable auf der $x$-Achse. Dadurch legen wir fest, welche
+Punkte jeweils eine Linie verbinden soll. In diesem Fall heiß das, wir
+haben zwei "Gruppen" von Daten, eine für die weiblichen und eine für die
+männlichen Versuchspersonen. Die Werte gehören jeweils zu einer Linie.
+
+Außerdem verwenden wir in der Funktion `stat_summary` das Argument
+`geom = line` um ein Liniendiagramm zu erzeugen. Außerdem legen wir
+mit den weiteren Argumenten den Linientyp (`linetype = 4`) sowie die
+Linienstärke fest (`size = 1.5`).
+
+```{r stat_summary line}
+ggplot(dat, aes(x = Gruppe, y = Reaktion, 
+                colour = Geschl, group = Geschl)) +
+  stat_summary(fun.y = mean, geom = "line", linetype = 4, size = 1.5)
+```
+
+### ggplot2-Grafiken speichern
+
+Ebenso wie bei Standardgrafiken, gibt es auch bei mittels `ggplot2`
+erstellten Abbildungen zwei Möglichkeiten, diese abzuspeichern:
+Über RStudio sowie über R-Kommandos.
+
+Die Nutzung von RStudio zur Speicherung von Abbildungen wurde ausführlich
+oben im Zusammenhang mit Standardgrafiken erläutert. Das Vorgehen ist
+identisch für `ggplpot2`-Grafiken. Daher werden wir uns im Folgenden
+dem Speichern von Abbildungen über R-Kommandos widmen.
+
+Über die reguläre Vorgehensweise mit den drei Kommandos kann man auch 
+`ggplot2`-Grafiken speichern. Man legt also zuerst das Ausgabeformat
+fest (z.B. `png`), erzeugt anschließend die Abbildung und schließt den
+Vorgang schließlich mit `dev.off()` ab. Es gibt dabei nur einen wichtigen 
+Unterschied: Mann muss die Funktion `print` auf die Abbildung anwenden,
+damit diese abgespeichert werden kann (also z.B. 
+`print(ggplot(...) + geom_bar(...))`).
+
+```{r gg png plot, eval=FALSE}
+# Festlegen des Ausgabeformats
+png("Abbildung1.png", width = 400, height = 300)
+# Erzeugen der Grafik
+print(ggplot(dat, aes(x = Geschl)) +
+        geom_bar()
+      )
+# das Speichern abschließen
+dev.off()
+```
+
+Es wird nicht verwundern, dass auch das Speichern mit `ggplot2` wesentlich
+komfortabler als mit den Standardfunktionen ist. Dazu brauchen wir lediglich
+die Funktion `ggsave`. Folgendes Beispiel zeigt alle Kommandos, die zum
+Erstellen und Speichern einer Grafik im PDF-Format nötig sind.
+
+```{r ggsave, eval=FALSE}
+# Erzeugen der Grafik
+ggplot(dat, aes(x = Geschl)) +
+  geom_bar()
+# Speichern
+ggsave("Abbildung1.pdf", 
+       path = "C:/Users/Benutzername/Desktop/",
+       width = 4, height = 3)
+```
+
+Dabei speichert `ggsave` automatisch die zuletzt erstellte Abbildung.
+Das erste Argument ist der Dateiname. Praktischerweise erkennt `ggsave`
+anhand der Dateiendung automatisch des Ausgabeformat (z.B. `.png`,
+`.jpg`, `.pdf`). Über `path` kann man das Verzeichnis angeben, in dem
+die Datei gespeichert werden soll. Will man im aktuellen Arbeitsverzeichnis
+speichern, kann man das Argument weglassen. Schließlich kann man, unabhängig
+vom Ausgabeformat, die Größe der Grafik mittels `width` und `height` jeweils
+in Zoll festlegen.
+

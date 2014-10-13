@@ -1,4 +1,6 @@
 R-documentation
 ===============
 
-Introduction to the R programming language
+An introduction to the R programming language (in German).
+
+*Under development*

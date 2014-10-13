@@ -1,0 +1,364 @@
+---
+title: "Zeichenketten"
+author: "Sven Hohenstein"
+output:
+  html_document:
+    highlight: tango
+    theme: readable
+---
+
+Zeichenketten, also Vektoren vom Typ `character`, spielen bei der Arbeit mit
+R eine wichtige Rolle. Sie treten unter anderem auf als Bezeichner von 
+Spalten in Datensätzen, als Namen von Faktorstufen, als Beschriftungen von
+Grafiken und als Texte, aus denen bestimmte Informationen gezogen werden
+sollen.
+
+## Zeichenketten erzeugen
+
+Um Zeichenketten zu erstellen, kann der Text in doppelte (`"`) oder einfache
+Anführungszeichen (`'`) gesetzt werden. Die so erzeugte Zeichenkette in R
+ist in beiden Fällen identisch.
+
+```{r string creation}
+"test"
+'test'
+```
+
+Bei der Ausgabe der Zeichenkette werden in R zur Darstellung die doppelten 
+Anführungszeichen verwendet.
+Neben dieser direkten Eingabe von Zeichenketten, lassen sich diese auch
+durch Umwandlung von anderen Objekten oder Kombination mit diesen erzeugen.
+
+
+### Umwandlung von Objekten in Zeichenketten
+
+Um einen numerischen Vektor in einen Vektor aus Zeichenketten umzuwandeln,
+kann die Funktion `as.character` verwendet werden. 
+
+```{r numeric to character vector}
+vec <- c(1, 4, 5.7, 9.3, 0)
+as.character(vec)
+```
+
+Alternativ kann man auch ein Objekt zu *einer* Zeichenkette umwandeln. Für
+diesen Fall ist die Funktion `toString` hilfreich. Die einzelnen Zahlen
+werden jeweils mit einem Komma und einem Leerzeichen verbunden.
+
+```{r numeric to single character}
+toString(vec)
+```
+
+Aufpassen muss man bei dem Versuch, einen Vektor aus Objekten verschiedenen
+Typs zu erstellen, also beispielsweise aus Zeichenketten, Zahlen und logischen
+Werten. Sobald einer der Werte eine Zeichenkette ist, werden *alle* Werte in 
+Zeichenketten umgewandelt. Ein Vektor in R kann nur Informationen *eines* 
+Typs speichern.
+
+```{r cast to character}
+c(1, 2.3, TRUE, "HALLO", 0, FALSE, -3)
+```
+
+Die Anführungszeichen in der Ausgabe weisen darauf hin, dass in dem Vektor
+alle Elemente als Zeichenketten repräsentiert sind. Wenn man einzelne
+Objekte verschiedenen Typs in einer Struktur zusammenhalten möchte, kann man
+stattdessen Listen verwenden (siehe den Abschnitt zu Listen).
+
+
+### Zeichenketten zusammensetzen
+
+Die manuelle Eingabe einer größeren Anzahl von Zeichenketten ist sehr 
+zeitaufwendig und fehleranfällig (Vertippen). Wenn Zeichenketten nach einem
+bestimmten Muster erzeugt werden sollen, ist es einfacher die Funktion 
+`paste` zu verwenden.
+
+Mit dieser Funktion lassen sich mehrere Zeichenketten verbinden. 
+Die Zeichenketten werden als einzelne Argumente durch Kommata getrennt.
+Folgender Befehl fügt die Zeichenketten `"eins"`, `"zwei"` und `"drei"` zu
+einer einzigen Zeichenkette zusammen.
+
+```{r paste 123}
+paste("eins", "zwei", "drei")
+```
+
+In der Standardeinstellungen werden die Zeichenketten jeweils mit einem
+Leerzeichen, also der Zeichenkette `" "` verbunden. Der Parameter `sep`
+(für Separator) erlaubt die Spezifikation eines anderen Zeichenkette zum
+Verbinden der einzelnen Zeichenketten. 
+
+```{r paste sep}
+paste("eins", "zwei", "drei", sep = "_")
+paste("eins", "zwei", "drei", sep = ": ")
+```
+
+Ebenso wie beim Erzeugen von Vektoren mit `c`, werden bei `paste` numerische
+Argumente automatisch zu Zeichenketten umgewandelt, so dass sich
+Zeichenketten, die aus Buchstaben und Zahlen bestehen, erzeugen lassen.
+
+```{r paste numeric}
+paste("Die Summe aus", 1, "und", 2, "ist", 3)
+```
+
+Als Argumente lassen sich auch Vektoren übergeben. Dies ist besonders
+praktisch, da sich so leicht eine größere Zahl von Zeichenketten erstellen
+lässt.
+Auch dabei kommt wieder das Phänomen des Vektor-Recycling zum Tragen: Die
+Elemente des kürzeren Vektors werden wiederholt bis ihre Anzahl der Länge 
+des längeren Vektors entspricht.
+
+```{r paste recycling}
+paste("Variable", 1:3, sep = "_")
+paste(c("A", "B", "C"), "ist", 1:3)
+```
+
+Ein Tipp zur Vereinfachung: Häufig möchte man Zeichenketten ohne Separator
+verbinden. Zu diesem Zweck kann man `paste` mit dem Argument `sep = ""`
+verwenden. Einfacher ist es jedoch mit der Funktion `paste0`, bei der dies
+die Voreinstellung ist.
+
+```{r paste0}
+paste(1:4, "mal", sep = "")
+paste0(1:4, "mal")
+```
+
+
+## Zeichenketten modifizieren
+
+### Teilzeichenketten
+
+In R finden sich viele hilfreiche Funktionen, die es erlauben, Zeichenketten
+zu verändern. Kürzeren Teilzeichenketten aus längeren Zeichenketten lassen 
+sich mit der Funktion `substr` erzeugen. Die Parameter `start` und `stop`
+entsprechenden dabei den Positionen des ersten und des letzten Buchstabens der
+kürzeren Zeichenkette. Enthält die Zeichenkette weniger Zeichen als der Wert
+von `start`, wird eine leere Zeichenkette erzeugt.
+
+```{r substr}
+substr(c("123456", "ABCD", "ab"), start = 3, stop = 5)
+```
+
+Bereits bestehende Zeichenketten können mit `substr` und den entsprechenden
+Positionen auch durch andere Zeichenketten ersetzt werden. Dazu ist der
+Zuweisungsoperator `<-` nötig. Dabei ist zu beachten, das der
+Zeichenkettenvektor, in diesem Beispiel `vec` bereits bestehen muss, bevor
+er verändert werden kann. Wird nach dem Zuweisungsoperator eine Zeichenkette
+übergeben, die kürzer als `stop - start + 1` Zeichen ist, werden an den
+entsprechenden Stellen die alten Zeichen beibehalten
+
+```{r substr<-}
+vec <- c("123456", "ABCD", "ab")
+substr(vec, start = 3, stop = 5) <- "---"
+vec
+substr(vec, start = 1, stop = 3) <- "." # Hinweis: vec wurde schon verändert
+vec
+```
+
+Außerdem ist es möglich einen Vektor mit den neuen Zeichenketten anzugeben,
+sodass die Teilzeichenketten nicht mit derselben Zeichenkette ersetzt werden
+müssen.
+
+```{r substr<- vector}
+vec <- c("123456", "ABCD", "ab")
+substr(vec, start = 1, stop = 3) <- c("+++", "##", "_")
+vec
+```
+
+Mit der Funktion `substr` ist es beispielsweise sehr einfach, die ersten
+drei Buchstaben eines Wortes zu extrahieren. Wie kann man vorgehen, wenn man
+die letzten Buchstaben, unabhängig von der Länge der Zeichenkette, finden
+möchte? Dabei ist die Funktion `nchar` hilfreich. Diese gibt die Anzahl der 
+Zeichen in einer Zeichenkette zurück. Dieses Ergebnis lässt sich dann für
+den Parameter `stop` in `substr` verwenden. Als Wert für `start` gibt man
+dann die entsprechende Startposition auf Basis von `nchar` an.
+Folgendermaßen lassen sich die letzten zwei Buchstaben extrahieren.
+
+```{r nchar}
+vec <- c("123456", "ABCD", "ab")
+nchar(vec)     # Anzahl Zeichen
+nchar(vec) - 1 # Position des vorletzten Zeichens
+substr(vec, start = nchar(vec) - 1, stop = nchar(vec))
+```
+
+Es ist wichtig, die Funktion `nchar` zu kennen, da die Funktion `length` 
+nicht die Länge von Zeichenketten zurückgibt. Übrigens kann man auch die
+Namen der Parameter `start` und `stop` weglassen, so dass sich die Funktion
+beispielsweise mit `substr("Test", 1, 1)` aufrufen lässt um das erste 
+Zeichen zu bekommen.
+
+Häufig möchte man nicht nur eine einzelne Teilzeichenkette auf Basis einer
+längeren Zeichenkette haben, sondern die längere Zeichenkette in mehrere
+Teile zerlegen. Dies ist beispielsweise hilfreich für Zeichenketten, die
+mehrere Bedingungen kodieren. Zum Beispiel könnte die Zeichenkette 
+`"A1_B2_C3"` so einen Fall darstellen. Mit der Funktion `strsplit` lassen
+sich Zeichenketten teilen. Der Parameter `split` spezifiziert, wo die
+Zeichenkette geteilt wird. Unser Beispiel kann mit folgendem Befehl geteilt
+werden.
+
+```{r strsplit}
+strsplit("A1_B2_C3", split = "_")
+```
+
+Die Funktion `strsplit` erzeugt eine Liste. Hinweise zum Umgang mit diesem
+Datentyp finden Sie im Abschnitt zu Listen.
+
+
+### Änderung von Zeichen
+
+R bietet auch praktische Werkzeuge, wenn man die Groß- oder Kleinschreibung
+von Zeichenketten ändern möchte. Die Funktion `tolower` wandelt alle
+Großbuchstaben in Kleinbuchstaben um, die Funktion `toupper` wandelt alle
+Kleinbuchstaben in Großbuchstaben um.
+
+```{r toupper tolower}
+tolower(c("Hans Meier", "Ab-12"))
+toupper(c("Hans Meier", "Ab-12"))
+```
+
+Ziffern und andere Zeichen, die keine Buchstaben sind, werden dabei nicht
+verändert. In Kombination mit der Funktion `substr` lassen sich damit auch
+gezielt Teile der Zeichenkette ändern. Im folgenden Beispiel soll die
+Zeichenkette `"hans"` zu `"Hans"` verändert werden.
+
+```{r toupper substr}
+einName <- "Hans"
+erstesZeichen <- substr(einName, 1, 1)
+erstesZeichen
+substr(einName, 1, 1) <- tolower(erstesZeichen)
+einName
+```
+
+Möchte man größere Veränderungen als nur die Modifikation von Klein- und
+Großschreibung vornehmen, so lassen sich mit der Funktion `chartr`
+(*character translation*) genaue Regeln für die Umwandlung angeben. 
+Neben der Zeichenkette als drittes Argument, hat die Funktion die Parameter
+`old` und `new`, denen jeweils einzelne Zeichenketten übergeben werden 
+können. Schauen wir uns ein Beispiel dazu an.
+
+```{r chartr}
+chartr(old = "l", new = "s", "Hallo")
+```
+
+Alle Vorkommen von `old` in der Zeichenkette werden durch `new` ersetzt.
+In diesem Fall wurde `"l"` durch `"s"` ersetzt.
+
+
+### Zeichenketten vergleichen
+
+Zeichenketten können ganz einfach, wie auch numerische Werte, mithilfe von
+`==` mit einer bestimmten Zeichenkette verglichen werden. Dabei werden 
+logische Werte erzeugt, `TRUE` bei einer Übereinstimmung, sonst `FALSE`.
+
+```{r equals}
+c("abc", "def", "ghi") == "def"
+```
+
+Auch die anderen Vergleichsoperatoren sind möglich (`!=`, `>`, `>=`, `<`,
+`<=`). Bei Größer- und Kleiner-Relationen folgt der Vergleich der 
+Reihenfolge der Buchstaben im Alphabet. Zum Beispiel ist `"a"` "kleiner"
+als `"b"`.
+
+```{r comparison}
+c("abc", "def", "ghi") != "def"
+c("abc", "def", "ghi") > "def"
+c("abc", "def", "ghi") <= "def"
+```
+
+
+## Muster in Zeichenketten finden und ersetzen
+
+Die in diesem Abschnitt vorgestellten Funktionen bieten zahlreiche
+Möglichkeiten, Muster, die bestimmten Regeln folgen, in Zeichenketten zu
+finden und gegebenenfalls durch ein anderes Muster zu ersetzen.
+
+
+### Teilzeichenketten suchen und finden
+
+Die Funktion `grep` kann genutzt werden um festzustellen, ob eine bestimmte
+Teilzeichenkette in anderen Zeichenketten vorkommt. Der Aufruf der Funktion 
+folgt folgendem Schema: Das erste Argument, `pattern` (Muster) stellt die zu 
+suchende Zeichenfolge dar, als zweites Argument wird ein Vektor aus 
+Zeichenfolgen übergeben, in dem diese Zeichenfolge gesucht werden soll.
+
+```{r grep}
+grep(pattern = "au", c("Haus", "Wald", "Traube"))
+```
+
+Die Funktion gibt die Positionen derjenigen Zeichenfolgen im 
+Vektor zurück, die die zu suchende Zeichenfolge, in diesem Fall `"au"`,
+enthalten. Wenn stattdessen logische Werte als Ergebnis bevorzugt werden,
+so ist die Funktion `grepl` zu verwenden.
+
+```{r grepl}
+grepl("au", c("Haus", "Wald", "Traube"))
+```
+
+In vielen Fällen ist man jedoch an den Zeichenketten selbst interessiert und
+nicht an den numerischen oder logischen Indizes. Durch das Argument
+`value = TRUE` gibt `grep` einen Vektor mit den Zeichenketten zurück, in
+denen die Teilfolge enthalten ist.
+
+```{r grep value}
+grep("au", c("Haus", "Wald", "Traube"), value = TRUE)
+```
+
+Außerdem kann diese vielfältige Funktion auch genutzt werden, um
+Zeichenketten zu finden, die eine bestimmte Teilfolge *nicht* enthalten.
+Dazu nutzt man das Argument `invert = TRUE`.
+
+```{r grep invert}
+grep("au", c("Haus", "Wald", "Traube"), value = TRUE, invert = TRUE)
+```
+
+Es kann vorkommen, dass man eine Teilzeichenkette sucht und dabei die 
+Klein- und Großschreibung ignorieren möchte. Mit dem Argument 
+`ignore.case = FALSE` kann man dieses Verhalten von `grep` festlegen.
+
+```{r grep ignore.case}
+grep("abc", c("ABC", "abc", "cba"), ignore.case = TRUE, value = TRUE)
+```
+
+Die zu suchenden Zeichenketten in `grep` stellen Reguläre Ausdrücke dar, mit 
+denen sich auch spezielle Muster finden lassen. Zum Beispiel ist ein 
+Regulärer Ausdruck für *mindestens zwei Ziffern, gefolgt von einem 
+Unterstrich oder  Bindestrich sowie einem Buchstaben von d bis h* 
+folgendermaßen repräsentiert: `\\d{2,}[_-][d-h]`. Man kann schon erahnen, 
+dass die Syntax sehr komplex ist, für weitere Details ist die Hilfeseite 
+unter `?regex` ein guter Anlaufpunkt. Für die folgenden Beispiele werden wir
+auf diese erweiterten Möglichkeiten verzichten.
+
+
+### Teilzeichenketten ersetzen
+
+Wenn man Teilzeichenketten nicht nur suchen, sondern auch durch andere
+Teilzeichenketten ersetzen möchte, bieten sich die Funktionen `sub` und
+`gsub` an. Diese Funktionen haben auch einen Parameter `pattern`, 
+zusätzlich jedoch auch den Parameter `replacement` (Ersetzung). Durch
+letzteren lassen sich die gefundenen Teilfolgen durch andere ersetzen. 
+Schauen wir uns zunächst ein Beispiel mit `sub` an.
+
+```{r sub}
+sub(pattern = "ue", replacement = "ü", c("Tuer", "Mueller-Luedenscheid", "Kran"))
+```
+
+Die Folge `"ue"` wird durch den Umlaut `"ü"` ersetzt. Wird die Folge nicht
+gefunden, wird auch nichts verändert. Es fällt sofort auf, dass bei 
+`"Mueller-Luedenscheid"` nur das erste Vorkommen von `"ue"` ersetzt wurde.
+Dies ist die Besonderheit der `sub`-Funktion, sie bricht ab, sobald 
+die Teilzeichenkette das erste Mal gefunden und ersetzt wurde. Möchte man
+alle Vorkommen in einer Zeichenkette ersetzen, muss man die Funktion `gsub`
+verwenden, die bis auf diesem kleinen Unterschied identisch zu `sub` ist.
+
+```{r gsub}
+gsub("ue", "ü", c("Tuer", "Mueller-Luedenscheid", "Kran"))
+```
+
+Übrigens stellen im Standardfall sowohl die zu suchende Teilfolge als auch
+diejenige, die zum Ersetzen verwendet wird, Reguläre Ausdrücke dar. Dabei
+ist Vorsicht geboten.
+Eine häufige Fehlerquelle ist die Spezifikation einer zu suchenden
+Zeichenkette, die als Regulärer Ausdruck anderes interpretiert wird als
+die Zeichen es vermuten lassen. Beispielsweise hat das Zeichen `.` in
+Regulären Ausdrücken nicht die Bedeutung `"."`, sondern stellt ein beliebiges 
+Zeichen dar. Will man einen Punkt suchen, so muss man stattdessen `\\.` 
+verwenden. Um diese Fehlerquelle zu vermeiden, empfiehlt es sich im 
+Zweifelsfall, `grep` und `sub` /`gsub` mit dem Argument `fixed = FALSE` zu 
+verwenden. In diesem Fall werden die Zeichen so interpretiert wie sie sind.
