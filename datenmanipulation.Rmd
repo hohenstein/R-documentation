@@ -1,0 +1,274 @@
+---
+title: "Datenmanipulation für Fortgeschrittene"
+author: "Sven Hohenstein"
+output:
+  html_document:
+    highlight: tango
+    theme: readable
+---
+
+R bietet zahlreiche Funktionen, mit denen sich die Datenmanipulation mit relativ wenig Aufwand gestalten lässt. Häufig ist es nötig, Manipulationen auf Teile eines Datensatzes anzuwenden, beispielsweise auf jede Zeile oder die Daten jeder Versuchsperson separat. Neben der Möglichkeit, Schleifen zu verwenden, bietet R zahlreiche Funktionen, die dieses Arbeiten mit den Teilen eines Datensatzes vereinfacht.
+
+## Die `apply`-Familie
+
+Die `apply`-Familie ist eine Gruppe von Funktionen, deren Namen mit `apply` enden. Mithilfe dieser Funktionen lässt sich die Arbeit mit Teilen eines Datensatzes sehr komfortabel gestalten.
+
+### Die Funktion `apply`
+
+Mit `apply` lässt sich eine Funktion auf die Zeile oder Spalten einer Matrix oder eines Data Frame anwenden.
+
+Zur Illustration betrachten wir die folgende $3 \times 5$-Matrix `mat`.
+
+```{r example matrix}
+mat <- matrix(1:15, nrow = 3, ncol = 5)
+mat
+```
+
+Wenn wir das Maximum jeder Zeile bestimmen wollen, können wir eine `for`-Schleife verwenden.
+
+```{r loop}
+maxima <- rep(0, nrow(mat))
+for (i in 1:nrow(mat)) {
+  maxima[i] <- max(mat[i, ])  
+}
+maxima
+```
+
+Zunächst wird ein Vektor `maxima` erzeugt, in dem die Ergebnisse gespeichert werden sollen. Dann wird in einer Schleife über alle Zeilennummern der Matrix jeweils in jedem Durchgang das Maximum der jeweiligen Zeile mit dem Index `i` bestimmt. Das Ergebnis wird am entsprechenden Index im Vektor `maxima` abgespeichert.
+
+Sehen wir uns nun an, wie man die Maximalwerte der Zeilen mit `apply` finden kann.
+
+```{r apply 1}
+apply(mat, 1, max)
+```
+
+Das Ergebnis ist identisch zu dem, welches wir mit der `for`-Schleife bekommen haben. Allerdings ist der Programmieraufwand ungleich geringer. Das erste Argument, welches `apply` übergeben wird, ist der Name der Matrix. Es folgt ein Index der Dimension (`1`). Die erste Dimension entspricht den Spalten der Matrix, die zweite Dimension ihren Spalten. Das dritte Argument ist der Name der Funktion (`max`), welche wir auf jede Zeile anwenden wollen.
+
+Die `apply`-Funktion verfährt dabei ähnlich wie eine Schleife: Das Maximum jeder Zeile der Reihenfolge nach für jede Zeile der Matrix bestimmt. Am Ende erhalten wir einen Vektor mit den Werten.
+
+Analog können wir die Maximalwerte der Spalten berechnen. Dazu wird `2` als zweites Argument verwendet.
+
+```{r apply 2}
+apply(mat, 2, max)
+```
+
+Dadurch erhalten wir einen Vektor, in dem jeder Wert einem Spaltenmaximum entspricht. Da die Matrix fünf Spalten hat, bekommen wir auch einen Vektor der Länge fünf.
+
+Die Funktionen, die wir `apply` als drittes Argument übergeben könne, sind nicht beschränkt auf solche, die einen einzelnen Wert zurückliefern, wie beispielsweise `max`, `min`, `mean`, `sum` usw. Vielmehr können wir auch Funktionen verwenden, die mehrere Werte zurückliefern. Dazu sehen wir uns als Beispiel die Funktion `range` an, die die Bandbreite der Daten ermittelt. Diese Funktion gibt einen Vektor mit zwei Elementen zurück, dem Minimum und dem Maximum. Um die Bandbreite der Zeilen der Matrix `mat` zu berechnen, verwenden wir `apply` folgendermaßen.
+
+```{r apply 1 range}
+apply(mat, 1, range)
+```
+
+Hier sehen wir eine Besonderheit der `apply`-Funktion: Da die Funktion einen Vektor zurückliefert, werden die einzelnen Vektoren (einer für jede Zeile) als Matrix angeordnet. Dabei entspricht jede Spalte der Matrix der Bandbreite der zugehörigen Zeile.
+
+Obwohl wir ein Ergebnisse für die einzelnen Zeilen erzeugt haben, werden diese trotzdem als Spalten zusammengesetzt. Übrigens gilt das gleiche, wenn wir eine Funktion auf die Spalten einer Matrix anwenden. 
+
+```{r apply 2 range}
+apply(mat, 2, range)
+```
+
+Auch bei spaltenweiser Berechnung werden die Ergebnisse als Spalten einer Matrix repräsentiert.
+
+Wir sind bei `apply` nicht auf vorhandene Funktionen beschränkt, sondern können auch unsere eigenen Funktionen spezifizieren und diese `apply` als Argument übergeben. Möchten wir beispielsweise für jede Zeile sowohl das Minimum (`min`) als auch den Mittelwert (`mean`) der Daten berechnen und in einem Vektor der Länge zwei zurückgeben, können wir folgendermaßen vorgehen.
+
+```{r apply fun}
+apply(mat, 1, function(x) c(min(x), mean(x)))
+```
+
+In dieser Funktionsdefinition entspricht der Parameter `x` der jeweiligen Zeile. Es werden Minimum und Mittelwert berechnet, die mittels `c` in einem Vektor zusammengefasst werden.
+
+Die Funktion `apply` ist dann hilfreich, wenn man Funktionen zeilen- order spaltenweise anwenden möchte.
+
+
+### Die Funktionen `lapply`, `sapply` und `vapply`
+
+Mit `lapply`, `sapply` und `vapply` lassen sich Funktionen auf einzelne Elemente eines Vektors, Elemente einer Liste oder Spalten eines Data Frames anwenden. Man erhält auch dabei für jedes der Elemente einen Wert (oder mehrere Werte).
+
+Wir sehen uns eine Liste `liste` an, die numerische Vektoren enthält.
+
+```{r example list}
+liste <- list(a = 1:5, b = c(8, -7), c = c(-1, 0, 5), d = -0.4)
+liste
+```
+
+Die Liste enthält vier Elemente, die mit den Buchstaben `a`, `b`, `c` und `d` bezeichnet sind. Die Listenelemente, also die Vektoren, haben unterschiedliche Länge.
+
+#### `lapply`
+
+Wir können `lapply` benutzen um Funktionen auf die einzelnen Vektoren anzuwenden. In jedem Fall gibt `lapply` eine Liste zurück. Die Länge der Vektoren können wir mit der Funktion `length` ermitteln. Dazu verwenden wir folgendes Kommando.
+
+```{r lapply 1}
+lapply(liste, length)
+```
+
+Wir erhalten eine Liste, die über die gleiche Anzahl an Elemente wie `liste` verfügt, nämlich vier. Auch die Namen der Listenelemente bleiben erhalten. Jedes Element enthält jetzt genau eine Nummer: die jeweilige Länge des entsprechenden Vektors in `liste`.
+
+Die Funktion `lapply` lässt sich auch auf die einzelnen Elemente eines Vektors anwenden. Allerdings kommt diese Funktionalität selten zum Einsatz, da die sehr viele Funktionen in R direkt Vektoren als Argument akzeptieren.
+
+Eine andere praktische Nutzung ist die Verwendung von `lapply` mit Data Frames. Dazu sehen wir uns den in R verfügbaren Datensatz `trees` an, welcher die Maße von 31 gefällten Bäumen enthält.
+
+```{r trees}
+head(trees)
+```
+
+Die drei Spalten enthalten den Druchmesser (`Girth`), die Höhe (`Height`) und das Volumen (`Volume`) der Stämme. Mittels `lapply` können wir die Varianz (`var`) der einzelnen Spalten leicht ermitteln.
+
+```{r lapply trees}
+lapply(trees, var)
+```
+
+Wir erhalten eine Liste, in der jedes Element einer Spalte im Data Frame `trees` entspricht.
+
+Wenn eine Liste nur einzelne Nummern enthält, also Vektoren der Länge eins, ist ein Vektor eine attraktivere Variante zum Speichern der Daten, da sich Vektoren in der Regel einfacher handhaben lassen. Wir können `unlist` verwenden, um die Liste in einen vektor umzuwandeln
+
+```{r unlist}
+unlist(lapply(trees, var))
+```
+
+Allerdings steht mit der Funktion `sapply` eine einfachere Alternative zur Verfügung. 
+
+
+#### `sapply`
+
+Prinzipiell funktioniert `sapply` wie `lapply`. Der Unterschied besteht im Format, im dem die Daten zurückgegeben werden.
+
+Wenn man eine Funktion anwendet, die genau einen Wert zurückliefert (wie beispielweise `var`), gibt `sapply` die Werte automatisch in einem Vektor zurück.
+
+```{r sapply trees}
+sapply(trees, var)
+```
+
+Auch wenn eine Funktion verwendet wird, die mehr als einen Wert liefert (z.B. `range`), wird `sapply` die Daten in ein praktischeres Format überführen. In diesem Fall erhält man eine Matrix.
+
+```{r sapply trees range}
+sapply(trees, range)
+```
+
+Ebenso wie bei `apply` entsprechen die einzelnen Vektoren den Spalten der Matrix.
+
+Wenn die Funktion Vektoren unterschiedlicher Länge für jedes Listenelement zurückliefert, kann `sapply` das Format der Daten nicht vereinfachen. In diesem Fall wird auch, wie bei `lapply`, eine Liste erzeugt.
+
+Wir können mit `abs` den absoluten Betrag der Werte bestimmen.
+
+```{r sapply abs}
+sapply(liste, abs)
+```
+
+Das gleiche Ergebnis hätten wir auch mit `lapply` erzielt. Die Funktion `sapply` ist dann sinnvoll, wenn sich die Daten zu einem Vektor oder einer Matrix vereinfachen lassen.
+
+
+#### `vapply`
+
+Die Funktion `vapply` ist sehr ähnlich zu `sapply`, allerdings kann `vapply` in manchen Fällen effizienter sein. Außerdem muss man für `vapply` explizit angeben, was die Funktion zurückliefern wird.
+
+Sehen wir uns zunaächst ein Beispiel an. Folgenermaßen können wir mit `vapply` vorgehen, wenn wir die Streuung (`sd`) für die einzelnen Spalten in `trees` berechnen möchten.
+
+```{r vapply trees}
+vapply(trees, sd, FUN.VALUE = numeric(1))
+```
+
+Im Vergleich zu `sapply` benötigen wir bei `vapply` noch ein weiteres Argument. Wir müssen mit `FUN.VALUE` angeben, was die Funktion, in diesem Fall `sd`, für jede Spalte erzeugen wird. Dabei steht `numeric(1)` für einen numerischen Vektor der Länge eins.
+
+Analog können wir die Bandbreite der Spalten berechnen, müssen dann aber `FUN.VALUE = numeric(2)` als Argument verwenden, da die Funktion `range` einen numerischen Vektor mit zwei Elementen erzeugt.
+
+```{r vapply trees range}
+vapply(trees, range, FUN.VALUE = numeric(2))
+```
+
+Die Daten werden ebenso aufbereitet wie bei `sapply`: Einzelne Werte werden zu Vektoren und Vektoren zu Matrizen kombiniert.
+
+Da bei `vapply` genau angegeben werden muss, was die Funktion zurückliefert, ist es nicht möglich `vapply` zu benutzen, wenn die Funktion für jedes Element unterschiedlich lange Vektoren zurückliefert. In diesem Fall kann man `lapply` verwenden und erhält eine Liste. Der Vorteil bei `vapply` liegt in der Effizienz. Da schon vorher bekannt ist, was die Funktion für jedes Element zurückliefern wird, kann die Kombination der Daten schnell erfolgen. Für einfache Aufgaben, wie in diesen Beispielen, ist `sapply` jedoch völlig ausreichend.
+
+Wenn die Funktion keinen numerischen Vektor zurückgibt, kann man `numeric` nicht verwenden. Stattdessen verwendet man für Vektoren mit Zeichenketten `character` und für logische Vektoren `logical`.
+
+```{r vapply toString}
+vapply(liste, toString, FUN.VALUE = character(1))
+```
+
+Die Funktion `toString` kombiniert die Werte des Vektors zu einem einzigen String. Entpsrechend muss man für `vapply` das Argument `FUN.VALUE = character(1)` verwenden.
+
+
+### Die Funktion `mapply`
+
+Bisher haben wir Funktionen der `apply`-Familie kennengelernt, mit denen man Funktionen auf Teile eines Objektes anwenden kann. Dabei wird der jeweilige Teil des Objektes, z.B. ein Listenelement als Argument für eine Funktion genutzt. Die Funktion `mapply` ist verwandt mit `sapply`, wird jedoch angewendet, wenn wir mehrere Objekte haben, auf die wir einen Funktion anwenden möchten.
+
+In folgendem Beispiel haben wir zwei Vektoren, `start` und `ende`. Der Vektor `start` enthält die Zahlen von 1 bis 4, der Vektor `ende` enthält die Zahlen von 3 bis 6. 
+
+```{r mapply examples}
+start <- 1:4
+ende <- 5:8
+```
+
+Nun wollen wir die Funktion `seq` elementweise auf beide Vektoren anwenden. Das heißt, wir nutzen jeweils einen Wert aus `start` und `ende` als Argument für `seq`. Die Funktion `seq` erzeugt eine Sequenz vom ersten Argument zum zweiten Argument.
+
+```{r seq}
+seq(1, 5)
+```
+
+Mit der Funktion `mapply` können wir mehrere Sequenzen erstellen, dabei werden der erste Wert aus `start` und der erste Wert aus `ende` als Argumente verwendet, danach der jeweils zweite Wert usw. bis zum letzten Element der Vektoren.
+
+```{r mapply seq 1}
+mapply(seq, start, ende)
+```
+
+Besonders aufpassen muss man bei der Reihenfolge der Argumente. Im Gegensatz zu den anderen Funktionen der `apply`-Familie wird bei `mapply` die Funktion als *erstes* Argument übergeben. Die weiteren Argumente sind die jeweiligen Objekte. 
+
+Wie bei `sapply` werden Vektoren spaltenweise zusammengebunden, so dass man eine Matrix erhält.
+
+Dabei ist `mapply` nicht auf zwei Objekte beschränkt, sondern unerrstützt Funktionen mit einer beliebigen Anzahl von Argumenten. Man kann für `seq` auch ein drittes Argument verwenden, welches den Abstand zwischen den Zahlen der Sequenz angibt. In diesem Beispiel verwenden wir einen dritten Vektor, `abstand` als weiteres Argument in `mapply`.
+
+```{r mapply seq 2}
+abstand <- 4:1
+mapply(seq, start, ende, abstand)
+```
+
+Somit erhalten wir vier Sequenzen, in denen die Zahlen um vier bis eins anwachsen. Da die Länge der Vektoren unterschiedlich ist, erhalten wir eine Liste.
+
+
+### Die Funktion `replicate`
+
+Obwohl `replicate` kein `apply` im Namen enthält, ist die Funktion verwandt mit den oben vorgestellten Funktionen. Jedoch wird mit `replicate` nicht eine Funktion auf die Elemente eines Objektes angewendet, sondern ein Befehl mehrfach ausgeführt.
+
+Dies ist zum Beispiel für Simulationen nützlich. Nehmen wir an, wir möchten zehnmal aus einer Standardnormalverteilung einhundert Zufallswerte ziehen (`rnorm`) und deren Mittelwert (`mean`) berechnen. Das Ergebnise soll schließlich ein Vektor mit zehn Zahlen sein. Dazu können wir folgendermaßen mit einer `for`-Schleife vorgehen.
+
+```{r for replicate}
+ergebnis <- rep(0, 10)
+for (i in 1:10) {
+  zufallswerte <- rnorm(100)
+  ergebnis[i] <- mean(zufallswerte)
+}
+ergebnis
+```
+
+Mithilfe von `replicate` lässt sich das wiederholte Ausführen von R-Befehlen leichter umsetzen. Dieselbe Prozedur sieht in diesem Fall so aus.
+
+```{r replicate}
+replicate(10, {zufallswerte <- rnorm(100); mean(zufallswerte)})
+```
+
+Wir erhalten wegen der Zufallszahlen natürlich nicht die identischen Ergebnisse. Das erste Argument für `replicate` ist die Anzahl der Wiederholungen (`10`). Das zweite Argument sind die Befehle, die mehrfach ausgeführt weren sollen. Mehrere Befehle muss man zwischen geschweite Klammern setzen und jeweils duch ein Semikolon (`;`) voneiander trennen.
+
+Dabei wird immer das Ergebnis des letzten Kommandos gespeichert, in diesem Fall also `mean(zufallswerte)`. Ebenso wie bei `sapply` ist das Ausgabeformat ein Vektor bei einzelnen Werten, eine Matrix bei Vektoren gleicher Länge und eine Liste bei Vektoren unterschiedlicher Länge. 
+
+
+## Die Funktion `outer`
+
+Obwohl `outer` kein `apply` im Namen enthält, soll die Funktion aufgrund ihrer verwandten Funktionalität hier erwähnt werden. Die Funktion ermöglicht es eine Funktion auf alle Kombinationen der Elemente zweier Vektoren anzuwenden.
+
+Zur Illustration Beispiel sehen wir uns einen Vektor mit Buchstaben und einen mit Zahlen an.
+
+```{r letters and numbers}
+buchstaben <- c("A", "B", "C", "D")
+zahlen <- 1:3
+```
+
+Wir wollen mit diesen vier Buchstaben und drei Zahlen alle $4 \cdot 3 = 12$ Kombinationen der Form `"A1"` erzeugen. Das Verbinden von Zeichenketten ermöglicht uns `paste0`. Dazu bietet uns `outer` eine einfache Möglichkeit.
+
+```{r outer}
+outer(buchstaben, zahlen, paste0)
+```
+
+Wir erhalten eine Matrix, die alle Kombinationen der Elemente der Vektoren enthält. Die Zeilen entsprechen dem ersten Argument (`buchstaben`), die Spalten dem zweiten (`zahlen`).
+
+Für `outer` können wir nicht jede beliebige Funktion verwenden, sondern nur solche die zwei Vektoren als Argumente akzeptieren. Außerdem darf die Funktion für jede Kombination aus Vektorelementen nur *einen* Wert zurückgeben, sodass sich die Werte als Matrix anordnen lassen. Dies ist ein wichtiger Unterschied zu den meisten Funktionen der `apply`-Familie.
