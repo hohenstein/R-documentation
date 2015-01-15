@@ -1296,4 +1296,3 @@ die Datei gespeichert werden soll. Will man im aktuellen Arbeitsverzeichnis
 speichern, kann man das Argument weglassen. Schließlich kann man, unabhängig
 vom Ausgabeformat, die Größe der Grafik mittels `width` und `height` jeweils
 in Zoll festlegen.
-
