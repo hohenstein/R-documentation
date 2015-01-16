@@ -9,7 +9,7 @@ output:
 
 R bietet zahlreiche Funktionen, mit denen sich die Datenmanipulation mit relativ wenig Aufwand gestalten lässt. Häufig ist es nötig, Manipulationen auf Teile eines Datensatzes anzuwenden, beispielsweise auf jede Zeile oder die Daten jeder Versuchsperson separat. Neben der Möglichkeit, Schleifen zu verwenden, bietet R zahlreiche Funktionen, die dieses Arbeiten mit den Teilen eines Datensatzes vereinfacht.
 
-## Die `apply`-Familie
+## Funktionen auf einzelne Komponenten anwenden: Die `apply`-Familie
 
 Die `apply`-Familie ist eine Gruppe von Funktionen, deren Namen mit `apply` enden. Mithilfe dieser Funktionen lässt sich die Arbeit mit Teilen eines Datensatzes sehr komfortabel gestalten.
 
@@ -191,7 +191,7 @@ Die Funktion `toString` kombiniert die Werte des Vektors zu einem einzigen Strin
 
 ### Die Funktion `mapply`
 
-Bisher haben wir Funktionen der `apply`-Familie kennengelernt, mit denen man Funktionen auf Teile eines Objektes anwenden kann. Dabei wird der jeweilige Teil des Objektes, z.B. ein Listenelement als Argument für eine Funktion genutzt. Die Funktion `mapply` ist verwandt mit `sapply`, wird jedoch angewendet, wenn wir mehrere Objekte haben, auf die wir einen Funktion anwenden möchten.
+Bisher haben wir Funktionen der `apply`-Familie kennengelernt, mit denen man Funktionen auf Teile eines Objektes anwenden kann. Dabei wird der jeweilige Teil des Objektes, z.B. ein Listenelement, als Argument für eine Funktion genutzt. Die Funktion `mapply` ist verwandt mit `sapply`, wird jedoch angewendet, wenn wir mehrere Objekte haben, auf die wir einen Funktion anwenden möchten.
 
 In folgendem Beispiel haben wir zwei Vektoren, `start` und `ende`. Der Vektor `start` enthält die Zahlen von 1 bis 4, der Vektor `ende` enthält die Zahlen von 3 bis 6. 
 
@@ -249,14 +249,14 @@ replicate(10, {zufallswerte <- rnorm(100); mean(zufallswerte)})
 
 Wir erhalten wegen der Zufallszahlen natürlich nicht die identischen Ergebnisse. Das erste Argument für `replicate` ist die Anzahl der Wiederholungen (`10`). Das zweite Argument sind die Befehle, die mehrfach ausgeführt weren sollen. Mehrere Befehle muss man zwischen geschweite Klammern setzen und jeweils duch ein Semikolon (`;`) voneiander trennen.
 
-Dabei wird immer das Ergebnis des letzten Kommandos gespeichert, in diesem Fall also `mean(zufallswerte)`. Ebenso wie bei `sapply` ist das Ausgabeformat ein Vektor bei einzelnen Werten, eine Matrix bei Vektoren gleicher Länge und eine Liste bei Vektoren unterschiedlicher Länge. 
+Dabei wird immer das Ergebnis des letzten Kommandos gespeichert, in diesem Fall also `mean(zufallswerte)`. Ebenso wie bei `sapply` ist das Ausgabeformat ein Vektor bei einzelnen Werten, eine Matrix bei Vektoren gleicher Länge und eine Liste bei Vektoren unterschiedlicher Länge.
+
+Wir haben viele Funktionen der `apply`-Familie kennengelernt. Jede dieser Funktionen ist für bestimmte Zwecke geeignet. Fassen wir noch einmal die wichtigsten Punkte zusammen. Um eine Funktion auf die Zeilen oder Spalten einer Matrix (oder eines Data Frames) anzuwenden, nutzt man `apply`. Um eine Funktion auf Elemente eines Vektors, Elemente einer Liste oder Spalten eines Data Frames anzuwenden, nutzt man `lapply`, `sapply` oder `vapply`. Für die Anwendung einer Funktion mit mehreren Argumenten auf die Elemente verschiedener Objekte steht `mapply` zur Verfügung. Schließlich kann man `replicate` nutzen, um Kommandos zu wiederholen, unabhängig von konkreten Objekten.
 
 
-## Die Funktion `outer`
+## Funktionen auf alle Kombinationen von Werten anwenden
 
-Obwohl `outer` kein `apply` im Namen enthält, soll die Funktion aufgrund ihrer verwandten Funktionalität hier erwähnt werden. Die Funktion ermöglicht es eine Funktion auf alle Kombinationen der Elemente zweier Vektoren anzuwenden.
-
-Zur Illustration Beispiel sehen wir uns einen Vektor mit Buchstaben und einen mit Zahlen an.
+Die Funktion `outer` ermöglicht es, eine Funktion auf alle Kombinationen der Elemente zweier Vektoren anzuwenden. Zur Illustration sehen wir uns einen Vektor mit Buchstaben und einen mit Zahlen an.
 
 ```{r letters and numbers}
 buchstaben <- c("A", "B", "C", "D")
@@ -272,3 +272,71 @@ outer(buchstaben, zahlen, paste0)
 Wir erhalten eine Matrix, die alle Kombinationen der Elemente der Vektoren enthält. Die Zeilen entsprechen dem ersten Argument (`buchstaben`), die Spalten dem zweiten (`zahlen`).
 
 Für `outer` können wir nicht jede beliebige Funktion verwenden, sondern nur solche die zwei Vektoren als Argumente akzeptieren. Außerdem darf die Funktion für jede Kombination aus Vektorelementen nur *einen* Wert zurückgeben, sodass sich die Werte als Matrix anordnen lassen. Dies ist ein wichtiger Unterschied zu den meisten Funktionen der `apply`-Familie.
+
+
+## Funktionen auf gruppierte Daten anwenden
+
+Sehr oft sind die Werte eines Datensatzes nach einer oder mehreren Variables gruppiert. Dabei lässt sich jeder Wert in den Daten einer Faktorstufe oder einer Kombination mehrerer Faktorstufen zuordnen. Ein Beispiel für gruppierte Daten sind Reaktionszeiten oder Korrektheitswerte, die sich experimentellen Bedingungen zuordnen lassen. Dabei ist man daran interessiert, die Werte getrennt für die einzelnen Bedingungen auszuwerten um beispielsweise Mittelwerte oder Streuungen zu vergleichen.
+
+Zur Veranschalichung der Arbeit mit gruppierten Daten werden wir den in R verfügbaren Datensatz `ToothGrowth` verwenden. Dieser enthält Daten eines Experimentes, in dem man die Auswirkung der Gabe von Vitamin C auf das Zahnwachstum von Meerscheinchen untersucht hat.
+
+```{r ToothGrowth}
+head(ToothGrowth)
+```
+
+Die erste Spalte (`len`) enthält die abhängige Variable, die Zahnlänge. Die zweite Spalte ist ein Faktor (`supp`) mit zwei Stufen, der die Art der Gabe des Vitamin C kodiert: `VC` für reines Vitamin C (Ascorbinsäure) und `OJ` für Orangensaft. Die dritte Spalte (`dose`) enthält die Dosis in Milligramm. Die Dosis die zweite experiemntelle Bedingung mit den Stufen `0.5`, `1.0` und `2.0`, jedoch ist diese Spalte kein Faktor, sondern numerisch.
+
+Wir können die Zahnlänge nach der Art der Gabe, der Dosis oder der Kombination beider Bedingungen gruppieren. Jede Beobachtung lässt sich eindeutig einer Gruppe zuordnen. Die Funktionen, die wir uns für die Arbeit mit gruppierten Werten ansehen werden, sind `tapply`, `ave`,`aggregate` und `by`.
+
+### Die Funktion `tapply`
+
+Im Gegensatz zu den anderen Funktionen der `apply`-Familie, wird `tapply` auf Daten angewendet, die sich nach einer order mehren Variablen gruppieren lassen. Folgendermaßen können wir uns die mittlere Zahnlänge in Abhängigkeit der Art der Gabe ansehen.
+
+```{r tapply supp}
+tapply(ToothGrowth$len, ToothGrowth$supp, mean)
+```
+
+Das erste Argument für `tapply` ist die Variable, auf welche wir die Funktion anwenden wollen (`ToothGrowth$len`), das zweite Argument ist die Gruppierungsvariable (`ToothGrowth$dose`). Die Funktion (`mean`) ist das dritte Argument.
+
+Wir erhalten als Ergebnis einen Vektor mit zwei Werten, den Mittelwert für die Bedingung `OJ` und den Mittelwert für die Bedingung `VC`. Dabei geht die Funktion `tapply` so vor, dass sie den Vektor mit den Werten in mehrere Abschnitte teilt, die den verschiedenen Faktorstufen entsprechen. Anschließend wird die Funktion auf jeden dieser Abschnitte angewendet.
+
+Mit `tapply` ist eas auch möglich, die Daten nach mehreren Variablen zu gruppieren. Wollen wir Mittelwerte Gruppiert nach Art der Gabe und Dosis erhalten, müssen wir beide Vektoren in einer Liste (`list`) kombinieren.
+
+```{r tapply supp dose}
+tapply(ToothGrowth$len, list(ToothGrowth$supp, ToothGrowth$dose), mean)
+```
+
+Wir erhalten eine Matrix, in der die Zeilen den Werten in `ToothGrowth$supp` und die Spalten den Werten in `ToothGrowth$dose` entsprechen. Die Elemente der Matrix sind die jeweiligen Mittelwerte der entsprechend gruppierten Teile des Vektors `ToothGrowth$len`.
+
+
+### Die Funktion `ave`
+
+Die Funktion `ave` wird ebenso wie `tapply` zur Anwendung einer Funktion auf gruppierte Daten verwendet. Allerdings erhält man mit `ave` immer einen Vektor, dessen Länge der Länge der Daten entspricht. Dies ist dann hilfreich, wenn wir beispielsweise eine weitere Spalte mit Mittelwerten zu einem Data Frame hinzufügen wollen.
+
+Auch bei `ave` verwenden wir als Argument die Variable, auf die die Funktion angewendet werden soll, dann folgen die Gruppierungsvariable und als letztes Argument die Funktion. Im Gegensatz zu `tapply` müssen wir immer `FUN =` für die Funktion benutzen.
+
+```{r ave supp}
+supp_mittelwerte <- ave(ToothGrowth$len, ToothGrowth$supp, FUN = mean)
+length(supp_mittelwerte)
+unique(supp_mittelwerte)
+```
+
+Wir erhalten eine Vektor der Länge sechzig. Dies entspricht der Anzahl der Zeilen im Data Frame `ToothGrowth`. Weiterhin sehen wir, dass der vektor nur zwei verschiedene Werte enthält, die beiden Mittelwerte der Gruppen. Diesen Vektor könnne wir beispielsweise mit `cbind` zum Data Frame hinzufügen. So haben wir in jeder Zeile den jeweiligen Mittelwert der Zahnlänge gruppiert nach Art der Gabe.
+
+```{r ave cbind}
+head(cbind(ToothGrowth, supp_mittelwerte))
+```
+
+Die Handhabung mehrerer Gruppierungsvariablen erfolgt bei `ave` anders als bei `tapply`. Die verschiedenen Variablen werden jeweils als eigenes Argument engegeben. Eine Gruppierung nach zwei Variablen erreichen wir mit folgendem Kommando.
+
+```{r ave supp dose}
+supp_dose_mittelwerte <- ave(ToothGrowth$len, ToothGrowth$supp, 
+                             ToothGrowth$dose, FUN = mean)
+length(supp_dose_mittelwerte)
+unique(supp_dose_mittelwerte)
+```
+
+Wieder ehalten wir einenVektor der Länge sechzig. Dieser enthält sechs verschiedene Werte da es insgesamt $2 \cdot 3 = 6$ verschiedene Kombinationen der zwei Variablen gibt.
+
+
+### Die Funktion `aggregate`
