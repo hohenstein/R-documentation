@@ -112,7 +112,7 @@ Eine andere praktische Nutzung ist die Verwendung von `lapply` mit Data Frames. 
 head(trees)
 ```
 
-Die drei Spalten enthalten den Druchmesser (`Girth`), die Höhe (`Height`) und das Volumen (`Volume`) der Stämme. Mittels `lapply` können wir die Varianz (`var`) der einzelnen Spalten leicht ermitteln.
+Die drei Spalten enthalten den Durchmesser (`Girth`), die Höhe (`Height`) und das Volumen (`Volume`) der Stämme. Mittels `lapply` können wir die Varianz (`var`) der einzelnen Spalten leicht ermitteln.
 
 ```{r lapply trees}
 lapply(trees, var)
@@ -120,7 +120,7 @@ lapply(trees, var)
 
 Wir erhalten eine Liste, in der jedes Element einer Spalte im Data Frame `trees` entspricht.
 
-Wenn eine Liste nur einzelne Nummern enthält, also Vektoren der Länge eins, ist ein Vektor eine attraktivere Variante zum Speichern der Daten, da sich Vektoren in der Regel einfacher handhaben lassen. Wir können `unlist` verwenden, um die Liste in einen vektor umzuwandeln
+Wenn eine Liste nur einzelne Nummern enthält, also Vektoren der Länge eins, ist ein Vektor eine attraktivere Variante zum Speichern der Daten, da sich Vektoren in der Regel einfacher handhaben lassen. Wir können `unlist` verwenden, um die Liste in einen Vektor umzuwandeln
 
 ```{r unlist}
 unlist(lapply(trees, var))
@@ -133,7 +133,7 @@ Allerdings steht mit der Funktion `sapply` eine einfachere Alternative zur Verf�
 
 Prinzipiell funktioniert `sapply` wie `lapply`. Der Unterschied besteht im Format, im dem die Daten zurückgegeben werden.
 
-Wenn man eine Funktion anwendet, die genau einen Wert zurückliefert (wie beispielweise `var`), gibt `sapply` die Werte automatisch in einem Vektor zurück.
+Wenn man eine Funktion anwendet, die genau einen Wert zurückliefert (wie beispielsweise `var`), gibt `sapply` die Werte automatisch in einem Vektor zurück.
 
 ```{r sapply trees}
 sapply(trees, var)
@@ -162,7 +162,7 @@ Das gleiche Ergebnis hätten wir auch mit `lapply` erzielt. Die Funktion `sapply
 
 Die Funktion `vapply` ist sehr ähnlich zu `sapply`, allerdings kann `vapply` in manchen Fällen effizienter sein. Außerdem muss man für `vapply` explizit angeben, was die Funktion zurückliefern wird.
 
-Sehen wir uns zunaächst ein Beispiel an. Folgenermaßen können wir mit `vapply` vorgehen, wenn wir die Streuung (`sd`) für die einzelnen Spalten in `trees` berechnen möchten.
+Sehen wir uns zunächst ein Beispiel an. Folgendermaßen können wir mit `vapply` vorgehen, wenn wir die Streuung (`sd`) für die einzelnen Spalten in `trees` berechnen möchten.
 
 ```{r vapply trees}
 vapply(trees, sd, FUN.VALUE = numeric(1))
@@ -186,7 +186,7 @@ Wenn die Funktion keinen numerischen Vektor zurückgibt, kann man `numeric` nich
 vapply(liste, toString, FUN.VALUE = character(1))
 ```
 
-Die Funktion `toString` kombiniert die Werte des Vektors zu einem einzigen String. Entpsrechend muss man für `vapply` das Argument `FUN.VALUE = character(1)` verwenden.
+Die Funktion `toString` kombiniert die Werte des Vektors zu einem einzigen String. Entsprechend muss man für `vapply` das Argument `FUN.VALUE = character(1)` verwenden.
 
 
 ### Die Funktion `mapply`
@@ -216,7 +216,7 @@ Besonders aufpassen muss man bei der Reihenfolge der Argumente. Im Gegensatz zu 
 
 Wie bei `sapply` werden Vektoren spaltenweise zusammengebunden, so dass man eine Matrix erhält.
 
-Dabei ist `mapply` nicht auf zwei Objekte beschränkt, sondern unerrstützt Funktionen mit einer beliebigen Anzahl von Argumenten. Man kann für `seq` auch ein drittes Argument verwenden, welches den Abstand zwischen den Zahlen der Sequenz angibt. In diesem Beispiel verwenden wir einen dritten Vektor, `abstand` als weiteres Argument in `mapply`.
+Dabei ist `mapply` nicht auf zwei Objekte beschränkt, sondern unterstützt Funktionen mit einer beliebigen Anzahl von Argumenten. Man kann für `seq` auch ein drittes Argument verwenden, welches den Abstand zwischen den Zahlen der Sequenz angibt. In diesem Beispiel verwenden wir einen dritten Vektor, `abstand` als weiteres Argument in `mapply`.
 
 ```{r mapply seq 2}
 abstand <- 4:1
@@ -230,7 +230,7 @@ Somit erhalten wir vier Sequenzen, in denen die Zahlen um vier bis eins anwachse
 
 Obwohl `replicate` kein `apply` im Namen enthält, ist die Funktion verwandt mit den oben vorgestellten Funktionen. Jedoch wird mit `replicate` nicht eine Funktion auf die Elemente eines Objektes angewendet, sondern ein Befehl mehrfach ausgeführt.
 
-Dies ist zum Beispiel für Simulationen nützlich. Nehmen wir an, wir möchten zehnmal aus einer Standardnormalverteilung einhundert Zufallswerte ziehen (`rnorm`) und deren Mittelwert (`mean`) berechnen. Das Ergebnise soll schließlich ein Vektor mit zehn Zahlen sein. Dazu können wir folgendermaßen mit einer `for`-Schleife vorgehen.
+Dies ist zum Beispiel für Simulationen nützlich. Nehmen wir an, wir möchten zehnmal aus einer Standardnormalverteilung einhundert Zufallswerte ziehen (`rnorm`) und deren Mittelwert (`mean`) berechnen. Das Ergebnisse soll schließlich ein Vektor mit zehn Zahlen sein. Dazu können wir folgendermaßen mit einer `for`-Schleife vorgehen.
 
 ```{r for replicate}
 ergebnis <- rep(0, 10)
@@ -247,7 +247,7 @@ Mithilfe von `replicate` lässt sich das wiederholte Ausführen von R-Befehlen l
 replicate(10, {zufallswerte <- rnorm(100); mean(zufallswerte)})
 ```
 
-Wir erhalten wegen der Zufallszahlen natürlich nicht die identischen Ergebnisse. Das erste Argument für `replicate` ist die Anzahl der Wiederholungen (`10`). Das zweite Argument sind die Befehle, die mehrfach ausgeführt weren sollen. Mehrere Befehle muss man zwischen geschweite Klammern setzen und jeweils duch ein Semikolon (`;`) voneiander trennen.
+Wir erhalten wegen der Zufallszahlen natürlich nicht die identischen Ergebnisse. Das erste Argument für `replicate` ist die Anzahl der Wiederholungen (`10`). Das zweite Argument sind die Befehle, die mehrfach ausgeführt werden sollen. Mehrere Befehle muss man zwischen geschweifte Klammern setzen und jeweils durch ein Semikolon (`;`) voneinander trennen.
 
 Dabei wird immer das Ergebnis des letzten Kommandos gespeichert, in diesem Fall also `mean(zufallswerte)`. Ebenso wie bei `sapply` ist das Ausgabeformat ein Vektor bei einzelnen Werten, eine Matrix bei Vektoren gleicher Länge und eine Liste bei Vektoren unterschiedlicher Länge.
 
@@ -278,13 +278,13 @@ Für `outer` können wir nicht jede beliebige Funktion verwenden, sondern nur so
 
 Sehr oft sind die Werte eines Datensatzes nach einer oder mehreren Variables gruppiert. Dabei lässt sich jeder Wert in den Daten einer Faktorstufe oder einer Kombination mehrerer Faktorstufen zuordnen. Ein Beispiel für gruppierte Daten sind Reaktionszeiten oder Korrektheitswerte, die sich experimentellen Bedingungen zuordnen lassen. Dabei ist man daran interessiert, die Werte getrennt für die einzelnen Bedingungen auszuwerten um beispielsweise Mittelwerte oder Streuungen zu vergleichen.
 
-Zur Veranschalichung der Arbeit mit gruppierten Daten werden wir den in R verfügbaren Datensatz `ToothGrowth` verwenden. Dieser enthält Daten eines Experimentes, in dem man die Auswirkung der Gabe von Vitamin C auf das Zahnwachstum von Meerscheinchen untersucht hat.
+Zur Veranschaulichung der Arbeit mit gruppierten Daten werden wir den in R verfügbaren Datensatz `ToothGrowth` verwenden. Dieser enthält Daten eines Experimentes, in dem man die Auswirkung der Gabe von Vitamin C auf das Zahnwachstum von Meerschweinchen untersucht hat.
 
 ```{r ToothGrowth}
 head(ToothGrowth)
 ```
 
-Die erste Spalte (`len`) enthält die abhängige Variable, die Zahnlänge. Die zweite Spalte ist ein Faktor (`supp`) mit zwei Stufen, der die Art der Gabe des Vitamin C kodiert: `VC` für reines Vitamin C (Ascorbinsäure) und `OJ` für Orangensaft. Die dritte Spalte (`dose`) enthält die Dosis in Milligramm. Die Dosis die zweite experiemntelle Bedingung mit den Stufen `0.5`, `1.0` und `2.0`, jedoch ist diese Spalte kein Faktor, sondern numerisch.
+Die erste Spalte (`len`) enthält die abhängige Variable, die Zahnlänge. Die zweite Spalte ist ein Faktor (`supp`) mit zwei Stufen, der die Art der Gabe des Vitamin C kodiert: `VC` für reines Vitamin C (Ascorbinsäure) und `OJ` für Orangensaft. Die dritte Spalte (`dose`) enthält die Dosis in Milligramm. Die Dosis die zweite experimentelle Bedingung mit den Stufen `0.5`, `1.0` und `2.0`, jedoch ist diese Spalte kein Faktor, sondern numerisch.
 
 Wir können die Zahnlänge nach der Art der Gabe, der Dosis oder der Kombination beider Bedingungen gruppieren. Jede Beobachtung lässt sich eindeutig einer Gruppe zuordnen. Die Funktionen, die wir uns für die Arbeit mit gruppierten Werten ansehen werden, sind `tapply`, `ave`,`aggregate` und `by`.
 
@@ -300,7 +300,7 @@ Das erste Argument für `tapply` ist die Variable, auf welche wir die Funktion a
 
 Wir erhalten als Ergebnis einen Vektor mit zwei Werten, den Mittelwert für die Bedingung `OJ` und den Mittelwert für die Bedingung `VC`. Dabei geht die Funktion `tapply` so vor, dass sie den Vektor mit den Werten in mehrere Abschnitte teilt, die den verschiedenen Faktorstufen entsprechen. Anschließend wird die Funktion auf jeden dieser Abschnitte angewendet.
 
-Mit `tapply` ist eas auch möglich, die Daten nach mehreren Variablen zu gruppieren. Wollen wir Mittelwerte Gruppiert nach Art der Gabe und Dosis erhalten, müssen wir beide Vektoren in einer Liste (`list`) kombinieren.
+Mit `tapply` ist es auch möglich, die Daten nach mehreren Variablen zu gruppieren. Wollen wir Mittelwerte Gruppiert nach Art der Gabe und Dosis erhalten, müssen wir beide Vektoren in einer Liste (`list`) kombinieren.
 
 ```{r tapply supp dose}
 tapply(ToothGrowth$len, list(ToothGrowth$supp, ToothGrowth$dose), mean)
@@ -321,13 +321,13 @@ length(supp_mittelwerte)
 unique(supp_mittelwerte)
 ```
 
-Wir erhalten eine Vektor der Länge sechzig. Dies entspricht der Anzahl der Zeilen im Data Frame `ToothGrowth`. Weiterhin sehen wir, dass der vektor nur zwei verschiedene Werte enthält, die beiden Mittelwerte der Gruppen. Diesen Vektor könnne wir beispielsweise mit `cbind` zum Data Frame hinzufügen. So haben wir in jeder Zeile den jeweiligen Mittelwert der Zahnlänge gruppiert nach Art der Gabe.
+Wir erhalten eine Vektor der Länge sechzig. Dies entspricht der Anzahl der Zeilen im Data Frame `ToothGrowth`. Weiterhin sehen wir, dass der Vektor nur zwei verschiedene Werte enthält, die beiden Mittelwerte der Gruppen. Diesen Vektor können wir beispielsweise mit `cbind` zum Data Frame hinzufügen. So haben wir in jeder Zeile den jeweiligen Mittelwert der Zahnlänge gruppiert nach Art der Gabe.
 
 ```{r ave cbind}
 head(cbind(ToothGrowth, supp_mittelwerte))
 ```
 
-Die Handhabung mehrerer Gruppierungsvariablen erfolgt bei `ave` anders als bei `tapply`. Die verschiedenen Variablen werden jeweils als eigenes Argument engegeben. Eine Gruppierung nach zwei Variablen erreichen wir mit folgendem Kommando.
+Die Handhabung mehrerer Gruppierungsvariablen erfolgt bei `ave` anders als bei `tapply`. Die verschiedenen Variablen werden jeweils als eigenes Argument angegeben. Eine Gruppierung nach zwei Variablen erreichen wir mit folgendem Kommando.
 
 ```{r ave supp dose}
 supp_dose_mittelwerte <- ave(ToothGrowth$len, ToothGrowth$supp, 
@@ -336,7 +336,77 @@ length(supp_dose_mittelwerte)
 unique(supp_dose_mittelwerte)
 ```
 
-Wieder ehalten wir einenVektor der Länge sechzig. Dieser enthält sechs verschiedene Werte da es insgesamt $2 \cdot 3 = 6$ verschiedene Kombinationen der zwei Variablen gibt.
+Wieder erhalten wir einen Vektor der Länge sechzig. Dieser enthält sechs verschiedene Werte da es insgesamt $2 \cdot 3 = 6$ verschiedene Kombinationen der zwei Variablen gibt.
 
 
 ### Die Funktion `aggregate`
+
+Mit `aggregate` lassen sich ebenfalls Funktionen auf gruppierte Daten anwenden, jedoch wird das Ergebnis im Unterschied zu `tapply` als Data Frame zurückgegeben. Dies ist in vielen Anwendungsfällen ein übersichtlicheres Format, insbesondere bei mehreren Gruppierungsvariablen. Die Syntax ist identisch zu der von `tapply`. Als Argumente geben wir ein Objekt, eine Liste von Gruppierungsvariablen und die Funktion an. 
+
+```{r aggregate supp}
+aggregate(ToothGrowth$len, list(ToothGrowth$supp, ToothGrowth$dose), mean)
+```
+
+Jede Zeile im Data Frame entspricht einer Kombination der Stufen der zwei Gruppierungsvariablen (`ToothGrowth$supp` und `ToothGrowth$dose`). Die ersten beiden Spalten enthalten die verschiedenen Ausprägungen dieser Gruppierungsvariablen, Die dritte Spalte (`x`) enthält die jeweiligen Mittelwerte. Die Namen der Spalten sind wenig aussagekräftig, da sie unabhängig von den Namen der eigentlichen Variablen sind. Auch hierfür gibt es eine einfache Lösung: Die Nutzung von `aggregate` mit einer Formel.
+
+Neben der oben vorgestellten Variante kann `aggregate` mit einer Formel als Argument benutzt werden. Die Formel ist dabei vergleichbar mit einer Formel für zahlreiche Statistik-Funktionen in R, z.B. `lm` (lineare Regression). Sehen wir uns obiges Beispiel in der Formel-Variante an.
+
+```{r aggregate supp form}
+aggregate(len ~ supp + dose, ToothGrowth, mean)
+```
+
+Das ist eine deutliche Verbesserung in der Lesbarkeit des Kommandos! In diesem Fall ist die Formel `len ~ supp + dose` das erste Argument. Wir können es lesen als: Verwende die Variable `len` und gruppiere sie (`~`) nach der Variable `supp` und (`+`) der Variable `dose`. Das zweite Argument ist der Name des Data Frames (`ToothGrowth`), in dem sich die Spalten mit den entsprechenden Namen in der Formel befinden. Schließlich ist das dritte Argument wieder die Funktion, die auf jeden Teil der Daten angewendet wird (`mean`).
+
+Die Formel-Variante ist nicht nur zu bevorzugen, da sie die Arbeit mit Spalten eines Data Frames vereinfacht, sondern auch korrekt benannte Spalten für das Ergebnis liefert. Die Namen der Spalten in der Ausgabe entsprechen den Namen in der Formel.
+
+In unserem Beispiel besteht der Data Frame nur aus der Variable, auf die die Funktion angewendet werden soll (`len`) und den Gruppierungsvariablen (`supp` und `dose`). In diesen Fällen können wir die Formel einfacher mit einem Punkt `.` erstellen.
+
+```{r aggregate supp form dot}
+aggregate(len ~ ., ToothGrowth, mean)
+```
+
+Dabei steht `.` für "alle übrigen Variablen", in diesem Fall also alle außer `len`.
+
+Ein weiterer wichtiger Vorteil bei der Nutzung von `aggregate` ist die Möglichkeit, mehrere Variablen zu gruppieren. Als Beispiel wollen wir die Maximale Zahnlänge (`len`) und die Maximale Dosis (`dose`) für jede Art der Gabe (`supp`) ermitteln.
+
+```{r aggregate cbind}
+aggregate(cbind(len, dose) ~ supp, ToothGrowth, max)
+```
+
+In diesem Befehl haben wir `cbind` verwendet, um die beiden Spalten `len` und `dose` zusammenzufügen. Der resultierende Data Frame zeigt die Maximalwerte für beide Variablen.
+
+Identisch zu obigem Kommando sind übrigens die folgenden Befehle mit der Nutzung des Punktes in der Formel.
+
+```{r aggregate cbind alternatives, eval = FALSE}
+# berechne für alle Variablen außer `supp`
+aggregate(. ~ supp, ToothGrowth, max)
+# gruppiere nach allen Variablen außer `len` und `dose`
+aggregate(cbind(len, dose) ~ ., ToothGrowth, max)
+```
+
+Zur Funktion `aggregate` können wir festhalten, dass diese sich insbesondere eignet, wenn wir das Ergebnis als Data Frame erhalten möchten und eine Funktion auf mehrere Variablen anwenden wollen.
+
+
+
+### Die Funktion `by`
+
+Die Funktion `by` wird ebenfalls genutzt um eine Funktion auf gruppierte Daten anzuwenden. Die Besonderheit von `by` liegt darin, dass wir die Zeilen eines Data Frames gruppieren können. Somit können wir Funktionen auf mehrere Spalten anwenden.
+
+Als Beispiel wollen wir für unseren Datensatz `ToothGrowth` eine lineare Regression mit der Zahnlänge (`len`) als abhängige Variable und der Art der Gabe als quantitative unabhängige Variable (`supp`) durchführen. Außerdem wollen wir den Datensatz nach der Dosis (`dose`) gruppieren, so dass wir eine Regression für jede Gruppe berechnen. Für eine lineare Regression nutzen wir den Befehl `lm` (*linear model*).
+
+```{r by}
+by(ToothGrowth, ToothGrowth$dose,
+   function(x) lm(len ~ supp, data = x))
+```
+
+Wir kennen schon die Syntax von anderen Funktionen: Das erste Argument ist das Objekt, auf das wir die Funktion anwenden wollen. An zweiter Stelle folgt die Gruppierungsvariable. Das dritte Argument ist die Funktion. Diesmal haben wir eine eigene Funktion geschrieben. In dieser Funktion `function(x) lm(len ~ supp, data = x)` ist `x` ein Parameter der jeweils einen Teil der Zeilen des Data Frames `ToothGrowth` enthält. Die Teilung der Zeilen erfolgt nach der Gruppierungsvariable `ToothGrowth$dose`, welche drei verschiedene Werte enthält. Somit wird unsere Funktion auf drei kleinere Data Frames angewendet. In der linearen Regression (`lm`) sagen wir `len` durch `supp` vorher. Das Argument `data = x` sorgt dafür, dass der jeweilige Teil des Data Frames verwendet wird.
+
+Als Ergebnis erhalten wir eine Liste der Klasse `by`. In der Ausgabe sehen wir die Werte der Koeffizienten für die drei Regressionen. Dabei können wir auf einzelne Elemente der Liste zugreifen, um weitere Funktionen auf die Ergebnisse der Regression anzuwenden.
+
+```{r by summary}
+ergebnis <- by(ToothGrowth, ToothGrowth$dose,
+               function(x) lm(len ~ supp, data = x))
+summary(ergebnis[[1]])
+```
+
+Im obigen Beispiel wird das Ergebnis von `by` dem Objekt `ergebnis` zugewiesen. Das erste Element extrahieren wir mit `ergebnis[[1]]`, worauf  die `summary`-Funktion angewendet wird, um eine Zusammenfassung des Ergebnisses mit $t$- und $p$-Werten zu erhalten.
