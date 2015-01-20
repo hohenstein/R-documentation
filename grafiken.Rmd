@@ -40,7 +40,8 @@ R-Befehle verwenden zu müssen.
 
 ```{r create_dat, echo=FALSE}
 set.seed(2)
-dat <- within(data.frame(Geschl = rep(c("weiblich", "männlich"), c(22, 10)),
+dat <- within(data.frame(Geschl = rep(c("weiblich", "männlich"), 
+                                      c(22, 10)),
                          Alter = as.integer(c(rnorm(22, 22, 3), 
                                               rnorm(10, 24, 2))),
                          Gruppe = sample(c("Kontroll", "Experiment"), 32, 
@@ -278,7 +279,8 @@ der Säulen entspricht dabei dem Mittelwert.
 ```{r par 3, echo = FALSE, fig.keep='last'}
 layout(t(1:2))
 barplot(tapply(dat$Alter, dat$Geschl, FUN = mean))
-barplot(tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean), beside = TRUE)
+barplot(tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean),
+        beside = TRUE)
 ```
 
 ```{r barplot tapply 1, eval=FALSE}
@@ -295,7 +297,8 @@ tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean)
 ```
 
 ```{r barplot tapply 2, eval=FALSE}
-barplot(tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean), beside = TRUE)
+barplot(tapply(dat$Alter, list(dat$Gruppe, dat$Geschl), FUN = mean),
+        beside = TRUE)
 ```
 
 ### Histogramme
